@@ -38,23 +38,6 @@ let VulcanItemEditor = class VulcanItemEditor {
         }
         return copy;
     }
-    copyArray(arr, newArr) {
-        for (let i = 0; i < arr.length; i++) {
-            if (typeof arr[i] === 'object') {
-                if (Array.isArray(arr[i])) {
-                    newArr[i] = [];
-                    this.copyArray(arr[i], newArr[i]);
-                }
-                else {
-                    newArr[i] = {};
-                    newArr[i] = this.copyItem(arr[i]);
-                }
-            }
-            else {
-                newArr[i] = arr[i];
-            }
-        }
-    }
     changeID(obj, oldId, newId) {
         for (let key in obj) {
             if (typeof obj[key] === 'object') {

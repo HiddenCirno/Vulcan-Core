@@ -46,7 +46,7 @@ let VulcanHandBookHelper = class VulcanHandBookHelper {
             return null;
         }
     }
-    addHandbook(item, price, tag) {
+    setHandbook(item, price, tag) {
         const handbook = this.databaseServer.getTables().templates.handbook.Items;
         const itemid = item._id;
         handbook.push({

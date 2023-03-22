@@ -28,12 +28,14 @@ import { BundleLoader } from "@spt-aki/loaders/BundleLoader";
 import { VulcanConsole } from "./vulcan-api/console";
 import { VulcanItemEditor } from "./vulcan-api/itemedit";
 import { VulcanHandBookHelper } from "./vulcan-api/handbook";
+import { VulcanLocaleHelper } from "./vulcan-api/localehelper";
 //
 class Mod implements IPreAkiLoadMod {
     public preAkiLoad(inFuncContainer: DependencyContainer): void {
 		container.register<VulcanConsole>("VulcanConsole", VulcanConsole, { lifecycle: Lifecycle.Singleton });
 		container.register<VulcanItemEditor>("VulcanItemEditor", VulcanItemEditor, { lifecycle: Lifecycle.Singleton });
 		container.register<VulcanHandBookHelper>("VulcanHandBookHelper", VulcanHandBookHelper, { lifecycle: Lifecycle.Singleton });
+		container.register<VulcanLocaleHelper>("VulcanLocaleHelper", VulcanLocaleHelper, { lifecycle: Lifecycle.Singleton });
     }
     public postAkiLoad(inFuncContainer: DependencyContainer): void {
     }
