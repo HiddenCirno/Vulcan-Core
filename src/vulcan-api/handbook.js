@@ -71,6 +71,11 @@ let VulcanHandBookHelper = class VulcanHandBookHelper {
         handbook.Items.find(item => item.Id == itemid).Price = price;
         handbook.Items.find(item => item.Id == itemid).ParentId = tag;
     }
+    getHandbook(item) {
+        const handbook = this.databaseServer.getTables().templates.handbook;
+        const itemid = item._id;
+        return handbook.Items.find(item => item.Id == itemid);
+    }
 };
 VulcanHandBookHelper = __decorate([
     (0, tsyringe_1.injectable)(),
