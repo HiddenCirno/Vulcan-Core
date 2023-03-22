@@ -1,7 +1,9 @@
 import { inject, injectable, container, DependencyContainer, Lifecycle } from "tsyringe";
+import https from "https";
 import { ILogger } from "@spt-aki/models/spt/utils/ILogger";
 import { DatabaseServer } from "@spt-aki/servers/DatabaseServer";
-import https from "https";
+import { ITemplateItem } from "@spt-aki/models/eft/common/tables/ITemplateItem";
+
 @injectable()
 export class VulcanHandBookHelper {
 
@@ -9,7 +11,7 @@ export class VulcanHandBookHelper {
         @inject("WinstonLogger") protected logger: ILogger,
         @inject("DatabaseServer") protected databaseServer: DatabaseServer
     ) { }
-    public getPrice(item: Object) {
+    public getPrice(item: ITemplateItem) {
         const handbook = this.databaseServer.getTables().templates.handbook
         const price = this.databaseServer.getTables().templates.prices
         const itemid = item._id
@@ -23,7 +25,7 @@ export class VulcanHandBookHelper {
             return 0
         }
     }
-    public getTag(item: Object) {
+    public getTag(item: ITemplateItem) {
         const handbook = this.databaseServer.getTables().templates.handbook
         const itemid = item._id
         if(handbook.Items.some(item=>item.Id==itemid)){
@@ -33,7 +35,7 @@ export class VulcanHandBookHelper {
             return null
         }
     }
-    public setHandbook(item: Object, price: number, tag: string) {
+    public setHandbook(item: ITemplateItem, price: number, tag: string) {
         const handbook = this.databaseServer.getTables().templates.handbook.Items
         const itemid = item._id
         handbook.push(
@@ -44,23 +46,23 @@ export class VulcanHandBookHelper {
             }
         )
     }
-    public editPrice(item: Object, price: number){
+    public editPrice(item: ITemplateItem, price: number){
         const handbook = this.databaseServer.getTables().templates.handbook
         const itemid = item._id
         handbook.Items.find(item=>item.Id==itemid).Price = price
     }
-    public editTag(item: Object, tag: string){
+    public editTag(item: ITemplateItem, tag: string){
         const handbook = this.databaseServer.getTables().templates.handbook
         const itemid = item._id
         handbook.Items.find(item=>item.Id==itemid).ParentId = tag
     }
-    public editHandbook(item: Object, price: number, tag: string) {
+    public editHandbook(item: ITemplateItem, price: number, tag: string) {
         const handbook = this.databaseServer.getTables().templates.handbook
         const itemid = item._id
         handbook.Items.find(item=>item.Id==itemid).Price = price
         handbook.Items.find(item=>item.Id==itemid).ParentId = tag
     }
-    public getHandbook(item: Object) {
+    public getHandbook(item: ITemplateItem) {
         const handbook = this.databaseServer.getTables().templates.handbook
         const itemid = item._id
         return handbook.Items.find(item=>item.Id==itemid)

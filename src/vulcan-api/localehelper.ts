@@ -2,6 +2,7 @@ import { inject, injectable, container, DependencyContainer, Lifecycle } from "t
 import { ILogger } from "@spt-aki/models/spt/utils/ILogger";
 import { DatabaseServer } from "@spt-aki/servers/DatabaseServer";
 import { ItemLocale } from "./localeclass";
+import { ITemplateItem } from "@spt-aki/models/eft/common/tables/ITemplateItem";
 @injectable()
 export class VulcanLocaleHelper {
     
@@ -10,7 +11,7 @@ export class VulcanLocaleHelper {
         @inject("DatabaseServer") protected databaseServer: DatabaseServer
     )
     { }
-    public setItemLocale(item: Object, itemlocale: ItemLocale, language: string){
+    public setItemLocale(item:ITemplateItem, itemlocale: ItemLocale, language: string){
         const db = this.databaseServer.getTables()
         const locale = db.locales.global[language]
         const itemid = item._id

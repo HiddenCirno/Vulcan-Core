@@ -3,6 +3,7 @@ import { ILogger } from "@spt-aki/models/spt/utils/ILogger";
 import { ImporterUtil } from "@spt-aki/utils/ImporterUtil";
 import { DatabaseServer } from "@spt-aki/servers/DatabaseServer";
 import { VulcanHandBookHelper } from "./handbook";
+import { ITemplateItem } from "@spt-aki/models/eft/common/tables/ITemplateItem";
 import https from "https";
 @injectable()
 export class VulcanItemEditor {
@@ -13,19 +14,19 @@ export class VulcanItemEditor {
         @inject("DatabaseServer") protected databaseServer: DatabaseServer,
         @inject("VulcanHandBookHelper") protected handbookHelper: VulcanHandBookHelper
     ) { }
-    public copyItem(item: Object) {
+    public copyItem(item: ITemplateItem) {
         if (typeof item !== 'object' || item === null) {
-          return item;  // 如果不是对象或者是 null，直接返回
+            return item;  // 如果不是对象或者是 null，直接返回
         }
-      
+
         let copy = Array.isArray(item) ? [] : {};
-      
+
         for (let key in item) {
-          if (Object.prototype.hasOwnProperty.call(item, key)) {
-            copy[key] = this.copyItem(item[key]);  // 递归复制子成员
-          }
+            if (Object.prototype.hasOwnProperty.call(item, key)) {
+                copy[key] = this.copyItem(item[key]);  // 递归复制子成员
+            }
         }
-      
+
         return copy;
     }
     public changeID(obj: Object, oldId: string, newId: string) {
@@ -46,7 +47,7 @@ export class VulcanItemEditor {
         }
         return obj;
     }
-    public addItem(item: Object) {
+    public addItem(item: ITemplateItem) {
         const db = this.databaseServer.getTables()
         const itemid = item._id
         db.templates.items[itemid] = item
@@ -57,7 +58,7 @@ export class VulcanItemEditor {
         return db.templates.items[itemid]
 
     }
-    public testAssort(item: Object, trader: string) {
+    public testAssort(item: ITemplateItem, trader: string) {
         const db = this.databaseServer.getTables()
         const itemid = item._id
         db.traders[trader].assort.items.push(
