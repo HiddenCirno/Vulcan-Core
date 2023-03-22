@@ -14,8 +14,22 @@ export declare class RepairHelper {
     protected configServer: ConfigServer;
     protected repairConfig: IRepairConfig;
     constructor(logger: ILogger, jsonUtil: JsonUtil, randomUtil: RandomUtil, databaseServer: DatabaseServer, configServer: ConfigServer);
-    updateItemDurability(itemToRepair: Item, itemToRepairDetails: ITemplateItem, isArmor: boolean, amountToRepair: number, useRepairKit?: boolean, applyRandomDegradation?: boolean): Item;
-    protected getRandomisedArmorRepairDegredationValue(armorMaterial: string, isRepairKit: boolean, armorMax: number): number;
-    protected getRandomisedWeaponRepairDegredationValue(itemProps: Props, isRepairKit: boolean, armorMax: number): number;
+    /**
+     * Alter an items durability after a repair by trader/repair kit
+     * @param itemToRepair item to update durability details
+     * @param itemToRepairDetails db details of item to repair
+     * @param isArmor Is item being repaired a piece of armor
+     * @param amountToRepair how many unit of durability to repair
+     * @param useRepairKit Is item being repaired with a repair kit
+     * @param applyMaxDurabilityDegradation should item have max durability reduced
+     */
+    updateItemDurability(itemToRepair: Item, itemToRepairDetails: ITemplateItem, isArmor: boolean, amountToRepair: number, useRepairKit: boolean, traderQualityMultipler: number, applyMaxDurabilityDegradation?: boolean): void;
+    protected getRandomisedArmorRepairDegradationValue(armorMaterial: string, isRepairKit: boolean, armorMax: number, traderQualityMultipler: number): number;
+    protected getRandomisedWeaponRepairDegradationValue(itemProps: Props, isRepairKit: boolean, weaponMax: number, traderQualityMultipler: number): number;
+    /**
+     * Is the supplied tpl a weapon
+     * @param tpl tplId to check is a weapon
+     * @returns true if tpl is a weapon
+     */
     isWeaponTemplate(tpl: string): boolean;
 }

@@ -1,14 +1,17 @@
 import { BotGeneratorHelper } from "../helpers/BotGeneratorHelper";
+import { BotWeaponGeneratorHelper } from "../helpers/BotWeaponGeneratorHelper";
 import { HandbookHelper } from "../helpers/HandbookHelper";
+import { ItemHelper } from "../helpers/ItemHelper";
 import { Inventory as PmcInventory } from "../models/eft/common/tables/IBotBase";
 import { Chances, Inventory, ItemMinMax, ModsChances } from "../models/eft/common/tables/IBotType";
 import { Item } from "../models/eft/common/tables/IItem";
-import { ITemplateItem, Props } from "../models/eft/common/tables/ITemplateItem";
+import { ITemplateItem } from "../models/eft/common/tables/ITemplateItem";
 import { IBotConfig } from "../models/spt/config/IBotConfig";
 import { ILogger } from "../models/spt/utils/ILogger";
 import { ConfigServer } from "../servers/ConfigServer";
 import { DatabaseServer } from "../servers/DatabaseServer";
 import { BotLootCacheService } from "../services/BotLootCacheService";
+import { LocalisationService } from "../services/LocalisationService";
 import { HashUtil } from "../utils/HashUtil";
 import { RandomUtil } from "../utils/RandomUtil";
 import { BotWeaponGenerator } from "./BotWeaponGenerator";
@@ -16,15 +19,29 @@ export declare class BotLootGenerator {
     protected logger: ILogger;
     protected hashUtil: HashUtil;
     protected randomUtil: RandomUtil;
+    protected itemHelper: ItemHelper;
     protected databaseServer: DatabaseServer;
     protected handbookHelper: HandbookHelper;
     protected botGeneratorHelper: BotGeneratorHelper;
     protected botWeaponGenerator: BotWeaponGenerator;
+    protected botWeaponGeneratorHelper: BotWeaponGeneratorHelper;
     protected botLootCacheService: BotLootCacheService;
+    protected localisationService: LocalisationService;
     protected configServer: ConfigServer;
     protected botConfig: IBotConfig;
-    constructor(logger: ILogger, hashUtil: HashUtil, randomUtil: RandomUtil, databaseServer: DatabaseServer, handbookHelper: HandbookHelper, botGeneratorHelper: BotGeneratorHelper, botWeaponGenerator: BotWeaponGenerator, botLootCacheService: BotLootCacheService, configServer: ConfigServer);
-    generateLoot(templateInventory: Inventory, itemCounts: ItemMinMax, isPmc: boolean, botRole: string, botInventory: PmcInventory, equipmentChances: Chances): void;
+    constructor(logger: ILogger, hashUtil: HashUtil, randomUtil: RandomUtil, itemHelper: ItemHelper, databaseServer: DatabaseServer, handbookHelper: HandbookHelper, botGeneratorHelper: BotGeneratorHelper, botWeaponGenerator: BotWeaponGenerator, botWeaponGeneratorHelper: BotWeaponGeneratorHelper, botLootCacheService: BotLootCacheService, localisationService: LocalisationService, configServer: ConfigServer);
+    /**
+     * Add loot to bots containers
+     * @param sessionId Session id
+     * @param templateInventory x.json from database/bots
+     * @param itemCounts Liits on item types to be added as loot
+     * @param isPmc Will bot be a pmc
+     * @param botRole Role of bot, e.g. asssult
+     * @param botInventory Inventory to add loot to
+     * @param equipmentChances
+     * @param botLevel Level of bot
+     */
+    generateLoot(sessionId: string, templateInventory: Inventory, itemCounts: ItemMinMax, isPmc: boolean, botRole: string, botInventory: PmcInventory, equipmentChances: Chances, botLevel: number): void;
     protected getRandomisedCount(min: number, max: number, nValue: number): number;
     /**
      * Take random items from a pool and add to an inventory until totalItemCount or totalValueLimit is reached
@@ -47,7 +64,7 @@ export declare class BotLootGenerator {
      * @param botRole bots role, .e.g. pmcBot
      * @param isPmc are we generating for a pmc
      */
-    protected addLooseWeaponsToInventorySlot(botInventory: PmcInventory, equipmentSlot: string, templateInventory: Inventory, modChances: ModsChances, botRole: string, isPmc: boolean): void;
+    protected addLooseWeaponsToInventorySlot(sessionId: string, botInventory: PmcInventory, equipmentSlot: string, templateInventory: Inventory, modChances: ModsChances, botRole: string, isPmc: boolean, botLevel: number): void;
     /**
      * Get a random item from the pool parameter using the biasedRandomNumber system
      * @param pool pool of items to pick an item from
@@ -80,19 +97,6 @@ export declare class BotLootGenerator {
      */
     protected itemHasReachedSpawnLimit(itemTemplate: ITemplateItem, botRole: string, isPmc: boolean, limitCount: Record<string, number>, itemSpawnLimits: Record<string, number>): boolean;
     /**
-     * Is the item an ammo box
-     * @param props props of the item to check
-     * @returns true if item is an ammo box
-     */
-    protected isAmmoBox(props: Props): boolean;
-    /**
-     * Create an object that contains the ammo stack for an ammo box
-     * @param parentId ammo box id
-     * @param props ammo box props
-     * @returns Item object
-     */
-    protected createAmmoForAmmoBox(parentId: string, props: Props): Item;
-    /**
      * Randomise the stack size of a money object, uses different values for pmc or scavs
      * @param isPmc is this a PMC
      * @param itemTemplate item details
@@ -111,7 +115,7 @@ export declare class BotLootGenerator {
      * If no limit found for a non pmc bot, fall back to defaults
      * @param isPmc is the bot we want limits for a pmc
      * @param botRole what role does the bot have
-     * @returns dictionary of tplIds and limit
+     * @returns Dictionary of tplIds and limit
      */
     protected getItemSpawnLimitsForBotType(isPmc: boolean, botRole: string): Record<string, number>;
     /**

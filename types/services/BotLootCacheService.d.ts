@@ -5,15 +5,17 @@ import { BotLootCache, LootCacheType } from "../models/spt/bots/BotLootCache";
 import { ILogger } from "../models/spt/utils/ILogger";
 import { DatabaseServer } from "../servers/DatabaseServer";
 import { JsonUtil } from "../utils/JsonUtil";
+import { LocalisationService } from "./LocalisationService";
 import { RagfairPriceService } from "./RagfairPriceService";
 export declare class BotLootCacheService {
     protected logger: ILogger;
     protected jsonUtil: JsonUtil;
     protected databaseServer: DatabaseServer;
     protected pmcLootGenerator: PMCLootGenerator;
+    protected localisationService: LocalisationService;
     protected ragfairPriceService: RagfairPriceService;
     protected lootCache: Record<string, BotLootCache>;
-    constructor(logger: ILogger, jsonUtil: JsonUtil, databaseServer: DatabaseServer, pmcLootGenerator: PMCLootGenerator, ragfairPriceService: RagfairPriceService);
+    constructor(logger: ILogger, jsonUtil: JsonUtil, databaseServer: DatabaseServer, pmcLootGenerator: PMCLootGenerator, localisationService: LocalisationService, ragfairPriceService: RagfairPriceService);
     /**
      * Remove all cached bot loot data
      */
@@ -34,6 +36,17 @@ export declare class BotLootCacheService {
      * @param isPmc Is the bot a PMC (alteres what loot is cached)
      */
     protected addLootToCache(botRole: string, isPmc: boolean, lootPool: Items): void;
+    /**
+     * Sort a pool of item objects by its flea price
+     * @param poolToSort pool of items to sort
+     */
+    protected sortPoolByRagfairPrice(poolToSort: ITemplateItem[]): void;
+    /**
+     * Add unique items into combined pool
+     * @param combinedItemPool Pool of items to add to
+     * @param itemsToAdd items to add to combined pool if unique
+     */
+    protected addUniqueItemsToPool(combinedItemPool: ITemplateItem[], itemsToAdd: ITemplateItem[]): void;
     /**
      * Ammo/grenades have this property
      * @param props

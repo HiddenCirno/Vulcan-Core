@@ -1,15 +1,15 @@
 import { ContainerHelper } from "../helpers/ContainerHelper";
-import { GameEventHelper } from "../helpers/GameEventHelper";
 import { ItemHelper } from "../helpers/ItemHelper";
 import { PresetHelper } from "../helpers/PresetHelper";
 import { RagfairServerHelper } from "../helpers/RagfairServerHelper";
-import { ILooseLoot, SpawnpointTemplate } from "../models/eft/common/ILooseLoot";
+import { ILooseLoot, Spawnpoint, SpawnpointsForced, SpawnpointTemplate } from "../models/eft/common/ILooseLoot";
 import { Item } from "../models/eft/common/tables/IItem";
 import { IStaticAmmoDetails, IStaticContainerProps, IStaticForcedProps, IStaticLootDetails } from "../models/eft/common/tables/ILootBase";
-import { ITemplateItem } from "../models/eft/common/tables/ITemplateItem";
 import { ILocationConfig } from "../models/spt/config/ILocationConfig";
 import { ILogger } from "../models/spt/utils/ILogger";
 import { ConfigServer } from "../servers/ConfigServer";
+import { LocalisationService } from "../services/LocalisationService";
+import { SeasonalEventService } from "../services/SeasonalEventService";
 import { JsonUtil } from "../utils/JsonUtil";
 import { MathUtil } from "../utils/MathUtil";
 import { ObjectId } from "../utils/ObjectId";
@@ -27,20 +27,59 @@ export declare class LocationGenerator {
     protected ragfairServerHelper: RagfairServerHelper;
     protected itemHelper: ItemHelper;
     protected mathUtil: MathUtil;
-    protected gameEventHelper: GameEventHelper;
+    protected seasonalEventService: SeasonalEventService;
     protected containerHelper: ContainerHelper;
     protected presetHelper: PresetHelper;
+    protected localisationService: LocalisationService;
     protected configServer: ConfigServer;
     protected locationConfig: ILocationConfig;
-    constructor(logger: ILogger, jsonUtil: JsonUtil, objectId: ObjectId, randomUtil: RandomUtil, ragfairServerHelper: RagfairServerHelper, itemHelper: ItemHelper, mathUtil: MathUtil, gameEventHelper: GameEventHelper, containerHelper: ContainerHelper, presetHelper: PresetHelper, configServer: ConfigServer);
+    constructor(logger: ILogger, jsonUtil: JsonUtil, objectId: ObjectId, randomUtil: RandomUtil, ragfairServerHelper: RagfairServerHelper, itemHelper: ItemHelper, mathUtil: MathUtil, seasonalEventService: SeasonalEventService, containerHelper: ContainerHelper, presetHelper: PresetHelper, localisationService: LocalisationService, configServer: ConfigServer);
+    /**
+     * Choose loot to put into a static container
+     * @param containerIn
+     * @param staticForced
+     * @param staticLootDist
+     * @param staticAmmoDist
+     * @param locationName Name of the map to generate static loot for
+     * @returns IStaticContainerProps
+     */
     generateContainerLoot(containerIn: IStaticContainerProps, staticForced: IStaticForcedProps[], staticLootDist: Record<string, IStaticLootDetails>, staticAmmoDist: Record<string, IStaticAmmoDetails[]>, locationName: string): IStaticContainerProps;
     protected getLooseLootMultiplerForLocation(location: string): number;
     protected getStaticLootMultiplerForLocation(location: string): number;
+    /**
+     * Create array of loose + forced loot using probability system
+     * @param dynamicLootDist
+     * @param staticAmmoDist
+     * @param locationName Location to generate loot for
+     * @returns Array of spawn points with loot in them
+     */
     generateDynamicLoot(dynamicLootDist: ILooseLoot, staticAmmoDist: Record<string, IStaticAmmoDetails[]>, locationName: string): SpawnpointTemplate[];
-    protected createItem(tpl: string, staticAmmoDist: Record<string, IStaticAmmoDetails[]>, parentId?: string): IContainerItem;
-    protected getRandomCompatibleCaliberTemplateId(item: ITemplateItem): string;
-    protected getRandomValidCaliber(magTemplate: ITemplateItem): string;
-    protected drawAmmoTpl(caliber: string, staticAmmoDist: Record<string, IStaticAmmoDetails[]>): string;
-    protected createRandomMagCartridges(magTemplate: ITemplateItem, parentId: string, staticAmmoDist: Record<string, IStaticAmmoDetails[]>, caliber?: string): Item;
-    protected createCartidges(parentId: string, ammoTpl: string, stackCount: number): Item;
+    /**
+     * Add forced spawn point loot into loot parameter array
+     * @param loot array to add forced loot to
+     * @param forcedSpawnPoints forced loot to add
+     * @param name of map currently generating forced loot for
+     */
+    protected addForcedLoot(loot: SpawnpointTemplate[], forcedSpawnPoints: SpawnpointsForced[], locationName: string): void;
+    /**
+     * Create array of item (with child items) and return
+     * @param chosenComposedKey Key we want to look up items for
+     * @param spawnPoint Dynamic spawn point item we want will be placed in
+     * @returns IContainerItem
+     */
+    protected createDynamicLootItem(chosenComposedKey: string, spawnPoint: Spawnpoint): IContainerItem;
+    /**
+     * Replace the _id value for base item + all children items parentid value
+     * @param itemWithChildren Item with mods to update
+     * @param newId new id to add on chidren of base item
+     */
+    protected reparentItemAndChildren(itemWithChildren: Item[], newId?: string): void;
+    /**
+     * Find an item in array by its _tpl, handle differently if chosenTpl is a weapon
+     * @param items Items array to search
+     * @param chosenTpl Tpl we want to get item with
+     * @returns Item object
+     */
+    protected getItemInArray(items: Item[], chosenTpl: string): Item;
+    protected createStaticLootItem(tpl: string, staticAmmoDist: Record<string, IStaticAmmoDetails[]>, parentId?: string): IContainerItem;
 }

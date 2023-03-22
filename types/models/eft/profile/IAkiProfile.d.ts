@@ -1,3 +1,4 @@
+import { MemberCategory } from "../../../models/enums/MemberCategory";
 import { MessageType } from "../../enums/MessageType";
 import { IPmcData } from "../common/IPmcData";
 import { Item } from "../common/tables/IItem";
@@ -11,6 +12,12 @@ export interface IAkiProfile {
     vitality: Vitality;
     inraid: Inraid;
     insurance: Insurance[];
+    /** Assort purchases made by player since last trader refresh */
+    traderPurchases?: Record<string, Record<string, TraderPurchaseData>>;
+}
+export declare class TraderPurchaseData {
+    count: number;
+    purchaseTimestamp: number;
 }
 export interface Info {
     id: string;
@@ -30,19 +37,32 @@ export interface WeaponBuild {
     items: Item[];
 }
 export interface Dialogue {
-    _id: string;
-    messages: Message[];
-    pinned: boolean;
-    new: number;
     attachmentsNew: number;
+    type: MessageType;
+    new: number;
+    _id: string;
+    Users?: IUserDialogInfo[];
+    pinned: boolean;
+    messages: Message[];
+}
+export interface IUserDialogInfo {
+    _id: string;
+    info: IUserDialogDetails;
+}
+export interface IUserDialogDetails {
+    Nickname: string;
+    Side: string;
+    Level: number;
+    MemberCategory: MemberCategory;
 }
 export interface DialogueInfo {
+    attachmentsNew: number;
+    new: number;
     _id: string;
     type: MessageType;
-    message: MessagePreview;
     pinned: boolean;
-    new: number;
-    attachmentsNew: number;
+    Users?: any[];
+    message: MessagePreview;
 }
 export interface Message {
     _id: string;
@@ -51,7 +71,7 @@ export interface Message {
     dt: number;
     UtcDateTime?: number;
     Member?: IUpdatableChatMember;
-    templateId: string;
+    templateId?: string;
     text?: string;
     hasRewards: boolean;
     rewardCollected: boolean;
@@ -66,6 +86,7 @@ export interface MessagePreview {
     dt: number;
     templateId: string;
     text?: string;
+    systemData?: ISystemData;
 }
 export interface MessageItems {
     stash?: string;
@@ -93,6 +114,13 @@ export interface DateTime {
 }
 export interface Aki {
     version: string;
+    mods?: ModDetails[];
+}
+export interface ModDetails {
+    name: string;
+    version: string;
+    author: string;
+    dateAdded: number;
 }
 export interface Vitality {
     health: Health;
