@@ -28,6 +28,7 @@ import { BundleLoader } from "@spt-aki/loaders/BundleLoader";
 import { VulcanConsole } from "./vulcan-api/console";
 import { VulcanItemEditor } from "./vulcan-api/itemedit";
 import { VulcanHandBookHelper } from "./vulcan-api/handbook";
+import { TraderAppMerchandise } from "./vulcan-api/merchantOperate";
 //
 class Mod implements IPreAkiLoadMod {
     public preAkiLoad(inFuncContainer: DependencyContainer): void {
