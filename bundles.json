@@ -1,0 +1,10 @@
+{
+    "manifest": [
+        {
+            "key": "string",
+			"dependencyKeys": [
+            ]
+        }
+    ]
+
+}
