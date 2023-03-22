@@ -44,7 +44,6 @@ export class VulcanItemEditor {
                 }
             }
         }
-        return obj;
     }
     public addItem(item: Object) {
         const db = this.databaseServer.getTables()
