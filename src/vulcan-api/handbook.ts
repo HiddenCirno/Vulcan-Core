@@ -60,5 +60,10 @@ export class VulcanHandBookHelper {
         handbook.Items.find(item=>item.Id==itemid).Price = price
         handbook.Items.find(item=>item.Id==itemid).ParentId = tag
     }
+    public getHandbook(item: Object) {
+        const handbook = this.databaseServer.getTables().templates.handbook
+        const itemid = item._id
+        return handbook.Items.find(item=>item.Id==itemid)
+    }
 
 }
