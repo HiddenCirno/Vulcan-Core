@@ -5,7 +5,6 @@ import { IValidateNicknameRequestData } from "../models/eft/profile/IValidateNic
 import { ILogger } from "../models/spt/utils/ILogger";
 import { DatabaseServer } from "../servers/DatabaseServer";
 import { SaveServer } from "../servers/SaveServer";
-import { FenceService } from "../services/FenceService";
 import { ProfileSnapshotService } from "../services/ProfileSnapshotService";
 import { JsonUtil } from "../utils/JsonUtil";
 import { TimeUtil } from "../utils/TimeUtil";
@@ -20,15 +19,37 @@ export declare class ProfileHelper {
     protected databaseServer: DatabaseServer;
     protected itemHelper: ItemHelper;
     protected profileSnapshotService: ProfileSnapshotService;
-    protected fenceService: FenceService;
-    constructor(logger: ILogger, jsonUtil: JsonUtil, watermark: Watermark, timeUtil: TimeUtil, saveServer: SaveServer, databaseServer: DatabaseServer, itemHelper: ItemHelper, profileSnapshotService: ProfileSnapshotService, fenceService: FenceService);
-    resetProfileQuestCondition(sessionID: string, conditionId: string): void;
+    constructor(logger: ILogger, jsonUtil: JsonUtil, watermark: Watermark, timeUtil: TimeUtil, saveServer: SaveServer, databaseServer: DatabaseServer, itemHelper: ItemHelper, profileSnapshotService: ProfileSnapshotService);
+    /**
+     * Remove/reset started quest condtions in player profile
+     * @param sessionID Session id
+     * @param conditionIds Condition ids that need to be reset/removed
+     */
+    resetProfileQuestCondition(sessionID: string, conditionIds: string[]): void;
+    /**
+     * Get all profiles from server
+     * @returns Dictionary of profiles
+     */
+    getProfiles(): Record<string, IAkiProfile>;
     getCompleteProfile(sessionID: string): IPmcData[];
+    /**
+     * Fix xp doubling on post-raid xp reward screen by sending a 'dummy' profile to the post-raid screen
+     * Server saves the post-raid changes prior to the xp screen getting the profile, this results in the xp screen using
+     * the now updated profile values as a base, meaning it shows x2 xp gained
+     * Instead, clone the post-raid profile (so we dont alter its values), apply the pre-raid xp values to the cloned objects and return
+     * Delete snapshot of pre-raid profile prior to returning profile data
+     * @param sessionId Session id
+     * @param output pmc and scav profiles array
+     * @param pmcProfile post-raid pmc profile
+     * @param scavProfile post-raid scav profile
+     * @returns updated profile array
+     */
+    protected postRaidXpWorkaroundFix(sessionId: string, output: IPmcData[], pmcProfile: IPmcData, scavProfile: IPmcData): IPmcData[];
     isNicknameTaken(info: IValidateNicknameRequestData, sessionID: string): boolean;
     /**
      * Add experience to a PMC inside the players profile
      * @param sessionID Session id
-     * @param experienceToAdd Experiecne to add to PMC character
+     * @param experienceToAdd Experience to add to PMC character
      */
     addExperienceToPmc(sessionID: string, experienceToAdd: number): void;
     getProfileByPmcId(pmcId: string): IPmcData;

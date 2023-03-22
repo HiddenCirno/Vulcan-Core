@@ -1,18 +1,35 @@
 import { MinMax } from "../../common/MinMax";
 import { IBaseConfig } from "./IBaseConfig";
+import { IBotDurability } from "./IBotDurability";
+import { IPmcConfig } from "./IPmcConfig";
 export interface IBotConfig extends IBaseConfig {
     kind: "aki-bot";
+    /** How many variants of each bot should be generated on raid start */
     presetBatch: PresetBatch;
+    /** What bot types should be classified as bosses */
     bosses: string[];
-    durability: Durability;
+    /** Control weapon/armor durability min/max values for each bot type */
+    durability: IBotDurability;
+    /** Control the weighting of how expensive an average loot item is on a PMC or Scav */
     lootNValue: LootNvalue;
+    /** Control what bots are added to a bots revenge list key: bottype, value: bottypes to revenge on seeing their death */
     revenge: Record<string, string[]>;
-    pmc: PmcConfig;
+    /** PMC bot specific config settings */
+    pmc: IPmcConfig;
+    /** Control how many items are allowed to spawn on a bot
+     * key: bottype, value: <key: itemTpl: value: max item count> */
     itemSpawnLimits: Record<string, Record<string, number>>;
-    equipment: Record<string, Equipment>;
+    /** Blacklist/whitelist items on a bot */
+    equipment: Record<string, EquipmentFilters>;
+    /** Show a bots botType value after their name */
     showTypeInNickname: boolean;
-    maxBotCap: number;
+    /** Max number of bots that can be spawned in a raid at any one time */
+    maxBotCap: Record<string, number>;
+    chanceAssaultScavHasPlayerScavName: number;
+    /** How many stacks of secret ammo should a bot have in its bot secure container */
     secureContainerAmmoStackCount: number;
+    /** Batch generation size when type not available in cache */
+    botGenerationBatchSizePerType: number;
 }
 export interface PresetBatch {
     assault: number;
@@ -44,81 +61,50 @@ export interface PresetBatch {
     test: number;
     exUsec: number;
 }
-export interface Durability {
-    default: DefaultDurability;
-    pmc: PmcDurability;
-    boss: BotDurability;
-    follower: BotDurability;
-    assault: BotDurability;
-    cursedassault: BotDurability;
-    marksman: BotDurability;
-    pmcbot: BotDurability;
-    exusec: BotDurability;
-    sectantpriest: BotDurability;
-    sectantwarrior: BotDurability;
-}
-export interface DefaultDurability {
-    armor: DefaultArmor;
-    weapon: WeaponDurability;
-}
-export interface DefaultArmor {
-    maxDelta: number;
-    minDelta: number;
-}
-export interface WeaponDurability {
-    lowestMax: number;
-    highestMax: number;
-    maxDelta: number;
-    minDelta: number;
-}
-export interface PmcDurability {
-    armor: PmcDurabilityArmor;
-    weapon: WeaponDurability;
-}
-export interface PmcDurabilityArmor {
-    lowestMaxPercent: number;
-    highestMaxPercent: number;
-    maxDelta: number;
-    minDelta: number;
-}
-export interface BotDurability {
-    armor: ArmorDurability;
-    weapon: WeaponDurability;
-}
-export interface ArmorDurability {
-    maxDelta: number;
-    minDelta: number;
-}
 export interface LootNvalue {
     scav: number;
     pmc: number;
 }
-export interface PmcConfig {
-    dynamicLoot: PmcDynamicLoot;
-    difficulty: string;
-    looseWeaponInBackpackChancePercent: number;
-    looseWeaponInBackpackLootMinMax: MinMax;
-    isUsec: number;
-    chanceSameSideIsHostilePercent: number;
-    usecType: string;
-    bearType: string;
-    maxBackpackLootTotalRub: number;
-    maxPocketLootTotalRub: number;
-    maxVestLootTotalRub: number;
-    convertIntoPmcChance: Record<string, MinMax>;
-    enemyTypes: string[];
-}
-export interface PmcDynamicLoot {
-    whitelist: string[];
-    blacklist: string[];
-    moneyStackLimits: Record<string, number>;
-}
-export interface Equipment {
+export interface EquipmentFilters {
+    weaponModLimits: ModLimits;
+    weaponSightWhitelist: Record<string, string[]>;
+    faceShieldIsActiveChancePercent?: number;
+    lightLaserIsActiveChancePercent?: number;
+    nvgIsActiveChancePercent?: number;
+    randomisation: RandomisationDetails[];
     blacklist: EquipmentFilterDetails[];
     whitelist: EquipmentFilterDetails[];
+    clothing: WeightingAdjustmentDetails[];
+    weightingAdjustments: WeightingAdjustmentDetails[];
+}
+export interface ModLimits {
+    /** How many scopes are allowed on a weapon - hard coded to work with OPTIC_SCOPE, ASSAULT_SCOPE, COLLIMATOR, COMPACT_COLLIMATOR */
+    scopeLimit?: number;
+    /** How many lasers or lights are allowed on a weapon - hard coded to work with TACTICAL_COMBO, and FLASHLIGHT */
+    lightLaserLimit?: number;
+}
+export interface RandomisationDetails {
+    levelRange: MinMax;
+    generation?: Record<string, MinMax>;
+    randomisedWeaponModSlots?: string[];
+    randomisedArmorSlots?: string[];
+    /** Equipment chances */
+    equipment?: Record<string, number>;
+    /** Modc chances */
+    mods?: Record<string, number>;
 }
 export interface EquipmentFilterDetails {
     levelRange: MinMax;
     equipment: Record<string, string[]>;
     cartridge: Record<string, string[]>;
+}
+export interface WeightingAdjustmentDetails {
+    levelRange: MinMax;
+    ammo?: AdjustmentDetails;
+    equipment?: AdjustmentDetails;
+    clothing?: AdjustmentDetails;
+}
+export interface AdjustmentDetails {
+    add: Record<string, Record<string, number>>;
+    edit: Record<string, Record<string, number>>;
 }

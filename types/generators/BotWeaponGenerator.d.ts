@@ -1,4 +1,5 @@
 import { BotGeneratorHelper } from "../helpers/BotGeneratorHelper";
+import { BotWeaponGeneratorHelper } from "../helpers/BotWeaponGeneratorHelper";
 import { ItemHelper } from "../helpers/ItemHelper";
 import { WeightedRandomHelper } from "../helpers/WeightedRandomHelper";
 import { MinMax } from "../models/common/MinMax";
@@ -11,9 +12,13 @@ import { IBotConfig } from "../models/spt/config/IBotConfig";
 import { ILogger } from "../models/spt/utils/ILogger";
 import { ConfigServer } from "../servers/ConfigServer";
 import { DatabaseServer } from "../servers/DatabaseServer";
+import { BotWeaponModLimitService } from "../services/BotWeaponModLimitService";
+import { LocalisationService } from "../services/LocalisationService";
 import { HashUtil } from "../utils/HashUtil";
 import { JsonUtil } from "../utils/JsonUtil";
 import { RandomUtil } from "../utils/RandomUtil";
+import { BotEquipmentModGenerator } from "./BotEquipmentModGenerator";
+import { IInventoryMagGen } from "./weapongen/IInventoryMagGen";
 export declare class BotWeaponGenerator {
     protected jsonUtil: JsonUtil;
     protected logger: ILogger;
@@ -24,11 +29,27 @@ export declare class BotWeaponGenerator {
     protected botGeneratorHelper: BotGeneratorHelper;
     protected randomUtil: RandomUtil;
     protected configServer: ConfigServer;
+    protected botWeaponGeneratorHelper: BotWeaponGeneratorHelper;
+    protected botWeaponModLimitService: BotWeaponModLimitService;
+    protected botEquipmentModGenerator: BotEquipmentModGenerator;
+    protected localisationService: LocalisationService;
+    protected inventoryMagGenComponents: IInventoryMagGen[];
     protected readonly modMagazineSlotId = "mod_magazine";
     protected botConfig: IBotConfig;
-    constructor(jsonUtil: JsonUtil, logger: ILogger, hashUtil: HashUtil, databaseServer: DatabaseServer, itemHelper: ItemHelper, weightedRandomHelper: WeightedRandomHelper, botGeneratorHelper: BotGeneratorHelper, randomUtil: RandomUtil, configServer: ConfigServer);
+    constructor(jsonUtil: JsonUtil, logger: ILogger, hashUtil: HashUtil, databaseServer: DatabaseServer, itemHelper: ItemHelper, weightedRandomHelper: WeightedRandomHelper, botGeneratorHelper: BotGeneratorHelper, randomUtil: RandomUtil, configServer: ConfigServer, botWeaponGeneratorHelper: BotWeaponGeneratorHelper, botWeaponModLimitService: BotWeaponModLimitService, botEquipmentModGenerator: BotEquipmentModGenerator, localisationService: LocalisationService, inventoryMagGenComponents: IInventoryMagGen[]);
     /**
-     * Get a random weapon from a bots pool of weapons (weighted)
+     * Pick a random weapon based on weightings and generate a functional weapon
+     * @param equipmentSlot Primary/secondary/holster
+     * @param botTemplateInventory e.g. assault.json
+     * @param weaponParentId
+     * @param modChances
+     * @param botRole role of bot, e.g. assault/followerBully
+     * @param isPmc Is weapon generated for a pmc
+     * @returns GenerateWeaponResult object
+     */
+    generateRandomWeapon(sessionId: string, equipmentSlot: string, botTemplateInventory: Inventory, weaponParentId: string, modChances: ModsChances, botRole: string, isPmc: boolean, botLevel: number): GenerateWeaponResult;
+    /**
+     * Get a random weighted weapon from a bots pool of weapons
      * @param equipmentSlot Primary/secondary/holster
      * @param botTemplateInventory e.g. assault.json
      * @returns weapon tpl
@@ -39,43 +60,24 @@ export declare class BotWeaponGenerator {
      * @param weaponTpl weapon tpl to generate (use pickWeightedWeaponTplFromPool())
      * @param equipmentSlot slot to fit into, primary/secondary/holster
      * @param botTemplateInventory e.g. assault.json
-     * @param weaponParentId
-     * @param modChances
-     * @param botRole
+     * @param weaponParentId ParentId of the weapon being generated
+     * @param modChances Dictionary of item types and % chance weapon will have that mod
+     * @param botRole e.g. assault/exusec
      * @param isPmc
      * @returns GenerateWeaponResult object
      */
-    generateWeaponByTpl(weaponTpl: string, equipmentSlot: string, botTemplateInventory: Inventory, weaponParentId: string, modChances: ModsChances, botRole: string, isPmc: boolean): GenerateWeaponResult;
+    generateWeaponByTpl(sessionId: string, weaponTpl: string, equipmentSlot: string, botTemplateInventory: Inventory, weaponParentId: string, modChances: ModsChances, botRole: string, isPmc: boolean, botLevel: number): GenerateWeaponResult;
     /**
-     * Generate an entirely random weapon
-     * @param equipmentSlot Primary/secondary/holster
-     * @param botTemplateInventory e.g. assault.json
-     * @param weaponParentId
-     * @param modChances
-     * @param botRole
-     * @param isPmc
-     * @returns GenerateWeaponResult object
-     */
-    generateRandomWeapon(equipmentSlot: string, botTemplateInventory: Inventory, weaponParentId: string, modChances: ModsChances, botRole: string, isPmc: boolean): GenerateWeaponResult;
-    /**
-     * Create array with weapon base as only element
-     * Add additional properties as required
-     * @param weaponTpl
-     * @param weaponParentId
-     * @param equipmentSlot
-     * @param weaponItemTemplate
+     * Create array with weapon base as only element and
+     * add additional properties based on weapon type
+     * @param weaponTpl Weapon tpl to create item with
+     * @param weaponParentId Weapons parent id
+     * @param equipmentSlot e.g. primary/secondary/holster
+     * @param weaponItemTemplate db template for weapon
      * @param botRole for durability values
-     * @returns
+     * @returns Base weapon item in array
      */
-    constructWeaponBaseArray(weaponTpl: string, weaponParentId: string, equipmentSlot: string, weaponItemTemplate: ITemplateItem, botRole: string): Item[];
-    /**
-     * Add compatible magazines to an inventory based on a generated weapon
-     * @param weaponDetails
-     * @param magCounts
-     * @param inventory
-     * @param botRole the bot type we're getting generating extra mags for
-     */
-    addExtraMagazinesToInventory(weaponDetails: GenerateWeaponResult, magCounts: MinMax, inventory: PmcInventory, botRole: string): void;
+    protected constructWeaponBaseArray(weaponTpl: string, weaponParentId: string, equipmentSlot: string, weaponItemTemplate: ITemplateItem, botRole: string): Item[];
     /**
      * Get the mods necessary to kit out a weapon to its preset level
      * @param weaponTpl weapon to find preset for
@@ -84,33 +86,29 @@ export declare class BotWeaponGenerator {
      * @returns array of weapon mods
      */
     protected getPresetWeaponMods(weaponTpl: string, equipmentSlot: string, weaponParentId: string, itemTemplate: ITemplateItem, botRole: string): Item[];
-    /** Checks if all required slots are occupied on a weapon and all it's mods */
-    protected isWeaponValid(weaponItemArray: Item[]): boolean;
+    /**
+     * Checks if all required slots are occupied on a weapon and all it's mods
+     * @param weaponItemArray Weapon + mods
+     * @param botRole role of bot weapon is for
+     * @returns true if valid
+     */
+    protected isWeaponValid(weaponItemArray: Item[], botRole: string): boolean;
     /**
      * Generates extra magazines or bullets (if magazine is internal) and adds them to TacticalVest and Pockets.
      * Additionally, adds extra bullets to SecuredContainer
-     * @param weaponMods
-     * @param weaponTemplate
-     * @param magCounts
-     * @param ammoTpl
-     * @param inventory
-     * @param botRole the bot type we're getting generating extra mags for
-     * @returns
+     * @param generatedWeaponResult object with properties for generated weapon (weapon mods pool / weapon template / ammo tpl)
+     * @param magCounts Magazine count to add to inventory
+     * @param inventory Inventory to add magazines to
+     * @param botRole The bot type we're getting generating extra mags for
      */
-    protected generateExtraMagazines(weaponMods: Item[], weaponTemplate: ITemplateItem, magCounts: MinMax, ammoTpl: string, inventory: PmcInventory, botRole: string): void;
+    addExtraMagazinesToInventory(generatedWeaponResult: GenerateWeaponResult, magCounts: MinMax, inventory: PmcInventory, botRole: string): void;
     /**
-     * Get a randomised number of bullets for a specific magazine
-     * @param magCounts min and max count of magazines
-     * @param magTemplate magazine to generate bullet count for
-     * @returns bullet count number
+     * Add Grendaes for UBGL to bots vest and secure container
+     * @param weaponMods Weapon array with mods
+     * @param generatedWeaponResult result of weapon generation
+     * @param inventory bot inventory to add grenades to
      */
-    protected getRandomisedBulletCount(magCounts: MinMax, magTemplate: ITemplateItem): number;
-    /**
-     * Get a randomised count of magazines
-     * @param magCounts min and max value returned value can be between
-     * @returns numberical value of magazine count
-     */
-    protected getRandomisedMagazineCount(magCounts: MinMax): number;
+    protected addUbglGrenadesToBotInventory(weaponMods: Item[], generatedWeaponResult: GenerateWeaponResult, inventory: PmcInventory): void;
     /**
      * Add ammo to the secure container
      * @param stackCount How many stacks of ammo to add
@@ -128,20 +126,12 @@ export declare class BotWeaponGenerator {
      */
     protected getMagazineTplFromWeaponTemplate(weaponMods: Item[], weaponTemplate: ITemplateItem, botRole: string): string;
     /**
-     * Get a weapons default magazine template id
-     * @param weaponTemplate weapon to get default magazine for
-     * @returns tpl of magazine
-     */
-    protected getWeaponsDefaultMagazineTpl(weaponTemplate: ITemplateItem): string;
-    protected addBulletsToVestAndPockets(ammoTpl: string, bulletCount: number, inventory: PmcInventory): void;
-    /**
      * Finds and return a compatible ammo tpl based on the bots ammo weightings (x.json/inventory/equipment/ammo)
      * @param ammo a list of ammo tpls the weapon can use
      * @param weaponTemplate the weapon we want to pick ammo for
-     * @param isPmc is the ammo being gathered for a pmc (runs pmc ammo filtering)
      * @returns an ammo tpl that works with the desired gun
      */
-    protected getCompatibleAmmo(ammo: Record<string, Record<string, number>>, weaponTemplate: ITemplateItem, isPmc: boolean): string;
+    protected getWeightedCompatibleAmmo(ammo: Record<string, Record<string, number>>, weaponTemplate: ITemplateItem): string;
     /**
      * Get a weapons compatible cartridge caliber
      * @param weaponTemplate Weapon to look up caliber of
@@ -150,19 +140,27 @@ export declare class BotWeaponGenerator {
     protected getWeaponCaliber(weaponTemplate: ITemplateItem): string;
     /**
      * Fill existing magazines to full, while replacing their contents with specified ammo
-     * @param weaponMods
-     * @param magazine
-     * @param ammoTpl
+     * @param weaponMods Weapon with children
+     * @param magazine Magazine item
+     * @param cartridgeTpl Cartridge to insert into magazine
      */
-    protected fillExistingMagazines(weaponMods: Item[], magazine: Item, ammoTpl: string): void;
+    protected fillExistingMagazines(weaponMods: Item[], magazine: Item, cartridgeTpl: string): void;
+    /**
+     * Add desired ammo tpl as item to weaponmods array, placed as child to UBGL
+     * @param weaponMods Weapon with children
+     * @param ubglMod UBGL item
+     * @param ubglAmmoTpl Grenade ammo tpl
+     */
+    protected fillUbgl(weaponMods: Item[], ubglMod: Item, ubglAmmoTpl: string): void;
     /**
      * Add cartridge item to weapon Item array, if it already exists, update
-     * @param weaponMods Weapon items array to amend
+     * @param weaponWithMods Weapon items array to amend
      * @param magazine magazine item details we're adding cartridges to
-     * @param chosenAmmo cartridge to put into the magazine
+     * @param chosenAmmoTpl cartridge to put into the magazine
      * @param newStackSize how many cartridges should go into the magazine
+     * @param magazineTemplate magazines db template
      */
-    protected addOrUpdateMagazinesChildWithAmmo(weaponMods: Item[], magazine: Item, chosenAmmo: string, newStackSize: number): void;
+    protected addOrUpdateMagazinesChildWithAmmo(weaponWithMods: Item[], magazine: Item, chosenAmmoTpl: string, magazineTemplate: ITemplateItem): void;
     /**
      * Fill each Camora with a bullet
      * @param weaponMods Weapon mods to find and update camora mod(s) from
