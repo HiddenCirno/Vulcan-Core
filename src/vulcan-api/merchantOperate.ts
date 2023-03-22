@@ -8,7 +8,7 @@ import { PreAkiModLoader } from "@spt-aki/loaders/PreAkiModLoader";
 import { DatabaseServer } from "@spt-aki/servers/DatabaseServer";
 
 interface TraderAssort {
-    items: Item;
+    items: Item[];
     barter_scheme: IBarterScheme[][];
     loyal_level_items: number;
 }
@@ -16,7 +16,7 @@ class traderOperate {
 
 }
 export class TraderAppMerchandise implements TraderAssort {
-    public items: Item;
+    public items: Item[];
     public barter_scheme: IBarterScheme[][];
     public loyal_level_items: number;
 
@@ -34,7 +34,9 @@ export class TraderAppMerchandise implements TraderAssort {
             "count": count,
             "_tpl": shoppingGoods
         })
-        this.items = item
+        
+        this.items = new Array();
+        this.items.push(item)
         this.barter_scheme = barterScheme;
         this.loyal_level_items = loyal_level;
     }
@@ -42,8 +44,20 @@ export class TraderAppMerchandise implements TraderAssort {
     appMerchandise(container: DependencyContainer, trader: string,) {
         const dbs = container.resolve<DatabaseServer>("DatabaseServer");
         const db = dbs.getTables();
-        db.traders[trader].assort.items.push(this.items);
-        db.traders[trader].assort.barter_scheme[this.items._id] = this.barter_scheme;
-        db.traders[trader].assort.loyal_level_items[this.items._id] = this.loyal_level_items;
+        for(const item of this.items){
+            db.traders[trader].assort.items.push(item);
+        }
+        db.traders[trader].assort.barter_scheme[this.items[0]._id] = this.barter_scheme;
+        db.traders[trader].assort.loyal_level_items[this.items[0]._id] = this.loyal_level_items;
+    }
+
+    appitemMods(modId: string,modslotLocation: string){
+        const modItem: Item = {
+            "_id": "_bac_" + modId + "213",
+            "_tpl": modId,
+            "parentId": this.items[0]._id,
+            "slotId": modslotLocation
+        }
+        this.items.push(modItem);
     }
 }
