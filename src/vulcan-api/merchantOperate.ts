@@ -17,7 +17,7 @@ interface TraderAssort {
     barter_scheme: Record<string, IBarterScheme[][]>;
     loyal_level_items: Record<string, number>;
 }
-export class traderOperateJsonOdj {
+export class TraderOperateJsonOdj {
     //直接接收原版格式的json，并指定商人售卖
     addTraderAssort(container: DependencyContainer, jsonAssortOdj: TraderAssort, trader: string) {
         const dbs = container.resolve<DatabaseServer>("DatabaseServer");
