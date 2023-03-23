@@ -4,7 +4,9 @@ import { ImporterUtil } from "@spt-aki/utils/ImporterUtil";
 import { DatabaseServer } from "@spt-aki/servers/DatabaseServer";
 import { VulcanHandBookHelper } from "./handbook";
 import { ITemplateItem } from "@spt-aki/models/eft/common/tables/ITemplateItem";
+import { IQuest } from "@spt-aki/models/eft/common/tables/IQuest";
 import https from "https";
+
 @injectable()
 export class VulcanItemEditor {
 
@@ -14,7 +16,7 @@ export class VulcanItemEditor {
         @inject("DatabaseServer") protected databaseServer: DatabaseServer,
         @inject("VulcanHandBookHelper") protected handbookHelper: VulcanHandBookHelper
     ) { }
-    public copyItem(item: ITemplateItem) {
+    public copyItem(item: ITemplateItem|IQuest) {
         if (typeof item !== 'object' || item === null) {
             return item;  // 如果不是对象或者是 null，直接返回
         }

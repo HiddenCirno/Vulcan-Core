@@ -5,6 +5,7 @@ import { ItemLocale } from "./localeclass";
 import { VulcanItemEditor } from "./itemedit";
 import { QuestLocale } from "./localeclass";
 import { VulcanLocaleHelper } from "./localehelper"
+import { IQuest } from "@spt-aki/models/eft/common/tables/IQuest";
 @injectable()
 export class VulcanQuestHelper {
 
@@ -19,7 +20,7 @@ export class VulcanQuestHelper {
     //返回一个任务对象
     public createQuest(questid: string, traderid: string, type: string) {
         const db = this.databaseServer.getTables()
-        const quest = db.templates.quests["5967733e86f774602332fc84"]
+        const quest: IQuest = db.templates.quests["5967733e86f774602332fc84"]
         var newquest = this.itemEditor.copyItem(quest)
         newquest.type = type
         newquest.conditions.AvailableForFinish = []
