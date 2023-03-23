@@ -29,11 +29,13 @@ import { VulcanConsole } from "./vulcan-api/console";
 import { VulcanItemEditor } from "./vulcan-api/itemedit";
 import { VulcanHandBookHelper } from "./vulcan-api/handbook";
 import { VulcanLocaleHelper } from "./vulcan-api/localehelper";
-import { TraderAppMerchandise } from "./vulcan-api/merchantOperate";
 import { VulcanMiscMethod } from "./vulcan-api/miscmethod";
+import { TraderAppMerchandise, TraderOperateJsonOdj } from "./vulcan-api/merchantOperate";
 import { VulcanQuestHelper } from "./vulcan-api/questhelper";
+const addTrader = new TraderOperateJsonOdj
 //
 class Mod implements IPreAkiLoadMod {
+  
     public preAkiLoad(inFuncContainer: DependencyContainer): void {
 		container.register<VulcanConsole>("VulcanConsole", VulcanConsole, { lifecycle: Lifecycle.Singleton });
 		container.register<VulcanItemEditor>("VulcanItemEditor", VulcanItemEditor, { lifecycle: Lifecycle.Singleton });
@@ -42,8 +44,13 @@ class Mod implements IPreAkiLoadMod {
 		container.register<TraderAppMerchandise>("TraderAppMerchandise", TraderAppMerchandise, { lifecycle: Lifecycle.Singleton });
 		container.register<VulcanQuestHelper>("VulcanQuestHelper", VulcanQuestHelper, { lifecycle: Lifecycle.Singleton });
 		container.register<VulcanMiscMethod>("VulcanMiscMethod", VulcanMiscMethod, { lifecycle: Lifecycle.Singleton });
+
+
+    
+    addTrader.addTraderPreAkiload(inFuncContainer,商人名字)
     }
     public postAkiLoad(inFuncContainer: DependencyContainer): void {
+      addTrader.addTraderPosrtDBLoad(inFuncContainer,/* SPT原版格式的assor.json */,/* BaseOdj直接接收SPT原版格式的base.json */,/* 商人名字(同上) */,/* questassort直接接收SPT原版格式的questassort,PS:也可以之后用其他办法添加 */)
     }
     public postDBLoad(inFuncContainer: DependencyContainer): void {
     }
