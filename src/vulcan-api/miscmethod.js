@@ -22,6 +22,18 @@ let VulcanMiscMethod = class VulcanMiscMethod {
         this.logger = logger;
         this.databaseServer = databaseServer;
     }
+    copyObject(item) {
+        if (typeof item !== 'object' || item === null) {
+            return item; // 如果不是对象或者是 null，直接返回
+        }
+        let copy = Array.isArray(item) ? [] : {};
+        for (let key in item) {
+            if (Object.prototype.hasOwnProperty.call(item, key)) {
+                copy[key] = this.copyObject(item[key]); // 递归复制子成员
+            }
+        }
+        return copy;
+    }
 };
 VulcanMiscMethod = __decorate([
     (0, tsyringe_1.injectable)(),

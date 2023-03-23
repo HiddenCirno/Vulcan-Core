@@ -5,6 +5,7 @@ import { ItemLocale } from "./localeclass";
 import { VulcanItemEditor } from "./itemedit";
 import { QuestLocale } from "./localeclass";
 import { VulcanLocaleHelper } from "./localehelper"
+import { VulcanMiscMethod } from "./miscmethod"
 import { IQuest } from "@spt-aki/models/eft/common/tables/IQuest";
 @injectable()
 export class VulcanQuestHelper {
@@ -13,7 +14,8 @@ export class VulcanQuestHelper {
         @inject("WinstonLogger") protected logger: ILogger,
         @inject("DatabaseServer") protected databaseServer: DatabaseServer,
         @inject("VulcanItemEditor") protected itemEditor: VulcanItemEditor,
-        @inject("VulcanLocaleHelper") protected localehelper: VulcanLocaleHelper
+        @inject("VulcanLocaleHelper") protected localehelper: VulcanLocaleHelper,
+        @inject("VulcanMiscMethod") protected miscMethod: VulcanMiscMethod
     ) { }
     //创建空白任务(使用copyItem方法拷贝信息并清空信息)
     //参数说明 questid: 创建的新任务的任务id; traderid: 任务所属的商人id; type: 任务显示的类型
@@ -173,6 +175,414 @@ export class VulcanQuestHelper {
                 },
                 "dynamicLocale": false
             }
+        }
+    }
+    //内部方法, 用于向击杀目标需求创建指定地图需求
+    //传参: requireid: 指定击杀需求的id; location: 地图名
+    //地图名接受输入: 海关/海岸线/灯塔/森林/立交桥/储备站/实验室/街区/夜间工厂/白天工厂/工厂/塔科夫全境
+    private addLocation(requireid: Object, location: string) {
+        switch (location) {
+            case "海关": {
+                return {
+                    "_parent": "Location",
+                    "_props": {
+                        "id": `${requireid}_Location`,
+                        "target": [
+                            "bigmap"
+                        ]
+                    }
+                }
+            }
+            case "海岸线": {
+                return {
+                    "_parent": "Location",
+                    "_props": {
+                        "id": `${requireid}_Location`,
+                        "target": [
+                            "Shoreline"
+                        ]
+                    }
+                }
+            }
+            case "灯塔": {
+                return {
+                    "_parent": "Location",
+                    "_props": {
+                        "id": `${requireid}_Location`,
+                        "target": [
+                            "Lighthouse"
+                        ]
+                    }
+                }
+            }
+            case "森林": {
+                return {
+                    "_parent": "Location",
+                    "_props": {
+                        "id": `${requireid}_Location`,
+                        "target": [
+                            "Woods"
+                        ]
+                    }
+                }
+            }
+            case "立交桥": {
+                return {
+                    "_parent": "Location",
+                    "_props": {
+                        "id": `${requireid}_Location`,
+                        "target": [
+                            "Interchange"
+                        ]
+                    }
+                }
+            }
+            case "储备站": {
+                return {
+                    "_parent": "Location",
+                    "_props": {
+                        "id": `${requireid}_Location`,
+                        "target": [
+                            "RezervBase"
+                        ]
+                    }
+                }
+            }
+            case "实验室": {
+                return {
+                    "_parent": "Location",
+                    "_props": {
+                        "id": `${requireid}_Location`,
+                        "target": [
+                            "laboratory"
+                        ]
+                    }
+                }
+            }
+            case "塔科夫街区": {
+                return {
+                    "_parent": "Location",
+                    "_props": {
+                        "id": `${requireid}_Location`,
+                        "target": [
+                            "TarkovStreets"
+                        ]
+                    }
+                }
+            }
+            case "夜间工厂": {
+                return {
+                    "_parent": "Location",
+                    "_props": {
+                        "id": `${requireid}_Location`,
+                        "target": [
+                            "factory4_night"
+                        ]
+                    }
+                }
+            }
+            case "白天工厂": {
+                return {
+                    "_parent": "Location",
+                    "_props": {
+                        "id": `${requireid}_Location`,
+                        "target": [
+                            "factory4_day"
+                        ]
+                    }
+                }
+            }
+            case "工厂": {
+                return {
+                    "_parent": "Location",
+                    "_props": {
+                        "id": `${requireid}_Location`,
+                        "target": [
+                            "factory4_day",
+                            "factory4_night"
+                        ]
+                    }
+                }
+            }
+            case "塔科夫全境": {
+                return {
+                    "_parent": "Location",
+                    "_props": {
+                        "id": `${requireid}_Location`,
+                        "target": [
+                            "Interchange",
+                            "Shoreline",
+                            "TarkovStreets",
+                            "Lighthouse",
+                            "Woods",
+                            "bigmap",
+                            "RezervBase",
+                            "laboratory",
+                            "factory4_day",
+                            "factory4_night"
+                        ]
+                    }
+                }
+            }
+        }
+    }
+    //内部方法, 为击杀目标需求创建指定目标
+    //传参: requireid同上; target: 击杀目标
+    //target可接受参数: Scav/Bear/Usec/Pmc/Reshala/Sanitar/Glukhar/Tagilla/Killa/Shturman/Knight/BigPipe/BirdEye
+    private addTarget(requireid: Object, target: string) {
+        switch (target) {
+            case "Scav": {
+                return {
+                    "_parent": "Kills",
+                    "_props": {
+                        "compareMethod": ">=",
+                        "id": `${requireid}_KillEnemy`,
+                        "target": "Savage",
+                        "value": "1"
+                    }
+                }
+            }
+            case "Bear": {
+                return {
+                    "_parent": "Kills",
+                    "_props": {
+                        "compareMethod": ">=",
+                        "id": `${requireid}_KillEnemy`,
+                        "target": "Bear",
+                        "value": "1"
+                    }
+                }
+            }
+            case "Usec": {
+                return {
+                    "_parent": "Kills",
+                    "_props": {
+                        "compareMethod": ">=",
+                        "id": `${requireid}_KillEnemy`,
+                        "target": "Usec",
+                        "value": "1"
+                    }
+                }
+            }
+            case "Pmc": {
+                return {
+                    "_parent": "Kills",
+                    "_props": {
+                        "compareMethod": ">=",
+                        "id": `${requireid}_KillEnemy`,
+                        "target": "AnyPmc",
+                        "value": "1"
+                    }
+                }
+            }
+            case "Knight": {
+                return {
+                    "_parent": "Kills",
+                    "_props": {
+                        "compareMethod": ">=",
+                        "id": `${requireid}_KillEnemy`,
+                        "savageRole": [
+                            "bossKnight"
+                        ],
+                        "target": "Savage",
+                        "value": "1"
+                    }
+                }
+            }
+            case "BigPipe": {
+                return {
+                    "_parent": "Kills",
+                    "_props": {
+                        "compareMethod": ">=",
+                        "id": `${requireid}_KillEnemy`,
+                        "savageRole": [
+                            "followerBigPipe"
+                        ],
+                        "target": "Savage",
+                        "value": "1"
+                    }
+                }
+            }
+            case "BirdEye": {
+                return {
+                    "_parent": "Kills",
+                    "_props": {
+                        "compareMethod": ">=",
+                        "id": `${requireid}_KillEnemy`,
+                        "savageRole": [
+                            "followerBirdEye"
+                        ],
+                        "target": "Savage",
+                        "value": "1"
+                    }
+                }
+            }
+            case "Reshala": {
+                return {
+                    "_parent": "Kills",
+                    "_props": {
+                        "compareMethod": ">=",
+                        "id": `${requireid}_KillEnemy`,
+                        "savageRole": [
+                            "bossBully"
+                        ],
+                        "target": "Savage",
+                        "value": "1"
+                    }
+                }
+            }
+            case "Sanitar": {
+                return {
+                    "_parent": "Kills",
+                    "_props": {
+                        "compareMethod": ">=",
+                        "id": `${requireid}_KillEnemy`,
+                        "savageRole": [
+                            "bossSanitar"
+                        ],
+                        "target": "Savage",
+                        "value": "1"
+                    }
+                }
+            }
+            case "Tagilla": {
+                return {
+                    "_parent": "Kills",
+                    "_props": {
+                        "compareMethod": ">=",
+                        "id": `${requireid}_KillEnemy`,
+                        "savageRole": [
+                            "bossTagilla"
+                        ],
+                        "target": "Savage",
+                        "value": "1"
+                    }
+                }
+            }
+            case "Glukhar": {
+                return {
+                    "_parent": "Kills",
+                    "_props": {
+                        "compareMethod": ">=",
+                        "id": `${requireid}_KillEnemy`,
+                        "savageRole": [
+                            "bossGluhar"
+                        ],
+                        "target": "Savage",
+                        "value": "1"
+                    }
+                }
+            }
+            case "Shturman": {
+                return {
+                    "_parent": "Kills",
+                    "_props": {
+                        "compareMethod": ">=",
+                        "id": `${requireid}_KillEnemy`,
+                        "savageRole": [
+                            "bossKojaniy"
+                        ],
+                        "target": "Savage",
+                        "value": "1"
+                    }
+                }
+            }
+            case "Killa": {
+                return {
+                    "_parent": "Kills",
+                    "_props": {
+                        "compareMethod": ">=",
+                        "id": `${requireid}_KillEnemy`,
+                        "savageRole": [
+                            "bossKilla"
+                        ],
+                        "target": "Savage",
+                        "value": "1"
+                    }
+                }
+            }
+        }
+    }
+    //创建一个击杀目标需求
+    //传参: requireid: 说过很多次了......; target: 击杀目标, 接受输入同上; count: 击杀数量' autolocale: 自动本地化; location: 指定地点, 传参同上上
+    public createKill(requireid: string, target: string, count: number, autolocale: boolean, location: string) {
+        const db = this.databaseServer.getTables()
+        const locale = db.locales.global["ch"]
+        const quest = db.templates.quests
+        var killcondition = this.miscMethod.copyObject(quest["5936d90786f7742b1420ba5b"].conditions.AvailableForFinish[0])
+        this.itemEditor.changeID(killcondition, killcondition._props.id, requireid)
+        killcondition._props.counter.conditions = []
+        killcondition._props.counter.id = `${requireid}_KilledCondition`
+        killcondition._props.value = count
+        if (autolocale == true) {
+            if (location != null) {
+                if (target == "Bear") {
+                    locale[requireid] = `在${location}击杀${target}干员`
+                }
+                else if (target == "Usec") {
+                    locale[requireid] = `在${location}击杀${target}干员`
+                }
+                else if (target == "Pmc") {
+                    locale[requireid] = `在${location}击杀任意${target}干员`
+                }
+                else {
+                    locale[requireid] = `在${location}击杀${target}`
+                }
+            }
+            else {
+                if (target == "Bear") {
+                    locale[requireid] = `消灭${target}干员`
+                }
+                else if (target == "Usec") {
+                    locale[requireid] = `消灭${target}干员`
+                }
+                else if (target == "Pmc") {
+                    locale[requireid] = `消灭任意${target}干员`
+                }
+                else {
+                    locale[requireid] = `消灭${target}`
+                }
+            }
+        }
+        killcondition._props.counter.conditions.push(this.addTarget(requireid, target))
+        if (location != null) {
+            killcondition._props.counter.conditions.push(this.addLocation(requireid, location))
+        }
+        return killcondition
+
+    }
+    public createLeave(requireid: string, itemid: string, spendtime: number, count: number, zoneid: string, autolocale: boolean, zonestring: string) {
+        const db = this.databaseServer.getTables()
+        const locale = db.locales.global["ch"]
+        if (autolocale == true) {
+            if (zonestring != null) {
+                locale[requireid] = `将${count}个${this.localehelper.getzhItemName(this.itemEditor.getItem(itemid))}藏匿在${zonestring}`
+            }
+            else {
+                locale[requireid] = `将${count}个${this.localehelper.getzhItemName(this.itemEditor.getItem(itemid))}藏匿在指定地点`
+            }
+        }
+        return {
+            "_parent": "LeaveItemAtLocation",
+            "_props": {
+                "dogtagLevel": 0,
+                "dynamicLocale": false,
+                "id": requireid,
+                "index": 0,
+                "isEncoded": false,
+                "maxDurability": 100,
+                "minDurability": 0,
+                "onlyFoundInRaid": false,
+                "parentId": "",
+                "plantTime": spendtime,
+                "target": [
+                    itemid
+                ],
+                "value": `${count}`,
+                "visibilityConditions": [],
+                "zoneId": zoneid
+            },
+            "dynamicLocale": false
         }
     }
 }
