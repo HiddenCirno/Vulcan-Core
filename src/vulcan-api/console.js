@@ -16,18 +16,19 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.VulcanConsole = void 0;
 const tsyringe_1 = require("C:/snapshot/project/node_modules/tsyringe");
 const ILogger_1 = require("C:/snapshot/project/obj/models/spt/utils/ILogger");
+const LogTextColor_1 = require("C:/snapshot/project/obj/models/spt/logging/LogTextColor");
 let VulcanConsole = class VulcanConsole {
     constructor(logger) {
         this.logger = logger;
     }
     Log(string) {
-        this.logger.logWithColor(`[控制台信息]: ${string}`, "cyan");
+        this.logger.logWithColor(`[控制台信息]: ${string}`, LogTextColor_1.LogTextColor.CYAN);
     }
     Access(string) {
-        this.logger.logWithColor(`[控制台信息]: ${string}`, "green");
+        this.logger.logWithColor(`[控制台信息]: ${string}`, LogTextColor_1.LogTextColor.GREEN);
     }
     Error(string) {
-        this.logger.logWithColor(`[控制台信息]: ${string}`, "red");
+        this.logger.logWithColor(`[控制台信息]: ${string}`, LogTextColor_1.LogTextColor.RED);
     }
 };
 VulcanConsole = __decorate([

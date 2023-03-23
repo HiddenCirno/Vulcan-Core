@@ -551,6 +551,8 @@ export class VulcanQuestHelper {
         return killcondition
 
     }
+    //创建一个藏匿物品需求
+    //传参: requiteid; itemid; spendtime: 藏匿物品所需的时间; count: 藏匿物品的数量; zoneid: 藏匿物品的区域id; autolocale; zonestring: 藏匿物品地点的文本(为自动本地化设计, 填写null也行
     public createLeave(requireid: string, itemid: string, spendtime: number, count: number, zoneid: string, autolocale: boolean, zonestring: string) {
         const db = this.databaseServer.getTables()
         const locale = db.locales.global["ch"]

@@ -30,9 +30,10 @@ import { VulcanItemEditor } from "./vulcan-api/itemedit";
 import { VulcanHandBookHelper } from "./vulcan-api/handbook";
 import { VulcanLocaleHelper } from "./vulcan-api/localehelper";
 import { VulcanMiscMethod } from "./vulcan-api/miscmethod";
-import { TraderAppMerchandise, TraderOperateJsonOdj } from "./vulcan-api/merchantOperate";
+//import { TraderAppMerchandise, TraderOperateJsonOdj } from "./vulcan-api/merchantOperate";
+import { TraderAppMerchandise } from "./vulcan-api/merchantOperate";
 import { VulcanQuestHelper } from "./vulcan-api/questhelper";
-const addTrader = new TraderOperateJsonOdj
+//const addTrader = new TraderOperateJsonOdj
 //
 class Mod implements IPreAkiLoadMod {
   
@@ -47,10 +48,10 @@ class Mod implements IPreAkiLoadMod {
 
 
     
-    addTrader.addTraderPreAkiload(inFuncContainer,商人名字)
+    //addTrader.addTraderPreAkiload(inFuncContainer,商人名字)
     }
     public postAkiLoad(inFuncContainer: DependencyContainer): void {
-      addTrader.addTraderPosrtDBLoad(inFuncContainer,/* SPT原版格式的assor.json */,/* BaseOdj直接接收SPT原版格式的base.json */,/* 商人名字(同上) */,/* questassort直接接收SPT原版格式的questassort,PS:也可以之后用其他办法添加 */)
+      //addTrader.addTraderPosrtDBLoad(inFuncContainer,/* SPT原版格式的assor.json */,/* BaseOdj直接接收SPT原版格式的base.json */,/* 商人名字(同上) */,/* questassort直接接收SPT原版格式的questassort,PS:也可以之后用其他办法添加 */)
     }
     public postDBLoad(inFuncContainer: DependencyContainer): void {
     }

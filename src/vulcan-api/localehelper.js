@@ -17,6 +17,8 @@ exports.VulcanLocaleHelper = void 0;
 const tsyringe_1 = require("C:/snapshot/project/node_modules/tsyringe");
 const ILogger_1 = require("C:/snapshot/project/obj/models/spt/utils/ILogger");
 const DatabaseServer_1 = require("C:/snapshot/project/obj/servers/DatabaseServer");
+const VFS_1 = require("C:/snapshot/project/obj/utils/VFS");
+const JsonUtil_1 = require("C:/snapshot/project/obj/utils/JsonUtil");
 let VulcanLocaleHelper = class VulcanLocaleHelper {
     constructor(logger, databaseServer, vfs, jsonUtil) {
         this.logger = logger;
@@ -76,6 +78,6 @@ VulcanLocaleHelper = __decorate([
     __param(1, (0, tsyringe_1.inject)("DatabaseServer")),
     __param(2, (0, tsyringe_1.inject)("VFS")),
     __param(3, (0, tsyringe_1.inject)("JsonUtil")),
-    __metadata("design:paramtypes", [typeof (_a = typeof ILogger_1.ILogger !== "undefined" && ILogger_1.ILogger) === "function" ? _a : Object, typeof (_b = typeof DatabaseServer_1.DatabaseServer !== "undefined" && DatabaseServer_1.DatabaseServer) === "function" ? _b : Object, typeof (_c = typeof VFS !== "undefined" && VFS) === "function" ? _c : Object, typeof (_d = typeof JsonUtil !== "undefined" && JsonUtil) === "function" ? _d : Object])
+    __metadata("design:paramtypes", [typeof (_a = typeof ILogger_1.ILogger !== "undefined" && ILogger_1.ILogger) === "function" ? _a : Object, typeof (_b = typeof DatabaseServer_1.DatabaseServer !== "undefined" && DatabaseServer_1.DatabaseServer) === "function" ? _b : Object, typeof (_c = typeof VFS_1.VFS !== "undefined" && VFS_1.VFS) === "function" ? _c : Object, typeof (_d = typeof JsonUtil_1.JsonUtil !== "undefined" && JsonUtil_1.JsonUtil) === "function" ? _d : Object])
 ], VulcanLocaleHelper);
 exports.VulcanLocaleHelper = VulcanLocaleHelper;
