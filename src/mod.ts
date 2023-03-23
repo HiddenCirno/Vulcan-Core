@@ -30,6 +30,7 @@ import { VulcanItemEditor } from "./vulcan-api/itemedit";
 import { VulcanHandBookHelper } from "./vulcan-api/handbook";
 import { VulcanLocaleHelper } from "./vulcan-api/localehelper";
 import { TraderAppMerchandise } from "./vulcan-api/merchantOperate";
+import { VulcanQuestHelper } from "./vulcan-api/questhelper";
 //
 class Mod implements IPreAkiLoadMod {
     public preAkiLoad(inFuncContainer: DependencyContainer): void {
@@ -38,6 +39,7 @@ class Mod implements IPreAkiLoadMod {
 		container.register<VulcanHandBookHelper>("VulcanHandBookHelper", VulcanHandBookHelper, { lifecycle: Lifecycle.Singleton });
 		container.register<VulcanLocaleHelper>("VulcanLocaleHelper", VulcanLocaleHelper, { lifecycle: Lifecycle.Singleton });
 		container.register<TraderAppMerchandise>("TraderAppMerchandise", TraderAppMerchandise, { lifecycle: Lifecycle.Singleton });
+		container.register<VulcanQuestHelper>("VulcanQuestHelper", VulcanQuestHelper, { lifecycle: Lifecycle.Singleton });
     }
     public postAkiLoad(inFuncContainer: DependencyContainer): void {
     }

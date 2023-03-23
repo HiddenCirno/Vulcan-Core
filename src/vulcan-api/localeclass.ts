@@ -4,3 +4,10 @@ export interface ItemLocale
     Short: string
     Desc: string
 }
+export interface QuestLocale 
+{
+    Name: string
+    Desc: string
+    Success: string
+    Fail: string
+}

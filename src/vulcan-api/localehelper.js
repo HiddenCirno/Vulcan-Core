@@ -11,16 +11,20 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-var _a, _b;
+var _a, _b, _c, _d;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.VulcanLocaleHelper = void 0;
 const tsyringe_1 = require("C:/snapshot/project/node_modules/tsyringe");
 const ILogger_1 = require("C:/snapshot/project/obj/models/spt/utils/ILogger");
 const DatabaseServer_1 = require("C:/snapshot/project/obj/servers/DatabaseServer");
+const VFS_1 = require("C:/snapshot/project/obj/utils/VFS");
+const JsonUtil_1 = require("C:/snapshot/project/obj/utils/JsonUtil");
 let VulcanLocaleHelper = class VulcanLocaleHelper {
-    constructor(logger, databaseServer) {
+    constructor(logger, databaseServer, vfs, jsonUtil) {
         this.logger = logger;
         this.databaseServer = databaseServer;
+        this.vfs = vfs;
+        this.jsonUtil = jsonUtil;
     }
     setItemLocale(item, itemlocale, language) {
         const db = this.databaseServer.getTables();
@@ -30,11 +34,50 @@ let VulcanLocaleHelper = class VulcanLocaleHelper {
         locale[`${itemid} ShortName`] = itemlocale.Short;
         locale[`${itemid} Description`] = itemlocale.Desc;
     }
+    setQuestLocale(quest, questlocale, language) {
+        const db = this.databaseServer.getTables();
+        const locale = db.locales.global[language];
+        const questid = quest._id;
+        locale[`${questid} name`] = questlocale.Name;
+        locale[`${questid} description`] = questlocale.Desc;
+        locale[`${questid} failMessageText`] = questlocale.Fail;
+        locale[`${questid} successMessageText`] = questlocale.Success;
+    }
+    getLocaleFromFile(localeid, filedir) {
+        const file = this.vfs.readFile(filedir);
+        const filejson = this.jsonUtil.deserialize(file);
+        var locale = filejson[localeid];
+        return locale;
+    }
+    setKeyLocale(key, text, language) {
+        const db = this.databaseServer.getTables();
+        const locale = db.locales.global[language];
+        locale[key] = text;
+    }
+    getLocaleText(key, language) {
+        const db = this.databaseServer.getTables();
+        const locale = db.locales.global[language];
+        return locale[key];
+    }
+    getItemName(item, language) {
+        const db = this.databaseServer.getTables();
+        const locale = db.locales.global[language];
+        const itemid = item._id;
+        return locale[`${itemid} Name`];
+    }
+    getzhItemName(item) {
+        const db = this.databaseServer.getTables();
+        const locale = db.locales.global["ch"];
+        const itemid = item._id;
+        return locale[`${itemid} Name`];
+    }
 };
 VulcanLocaleHelper = __decorate([
     (0, tsyringe_1.injectable)(),
     __param(0, (0, tsyringe_1.inject)("WinstonLogger")),
     __param(1, (0, tsyringe_1.inject)("DatabaseServer")),
-    __metadata("design:paramtypes", [typeof (_a = typeof ILogger_1.ILogger !== "undefined" && ILogger_1.ILogger) === "function" ? _a : Object, typeof (_b = typeof DatabaseServer_1.DatabaseServer !== "undefined" && DatabaseServer_1.DatabaseServer) === "function" ? _b : Object])
+    __param(2, (0, tsyringe_1.inject)("VFS")),
+    __param(3, (0, tsyringe_1.inject)("JsonUtil")),
+    __metadata("design:paramtypes", [typeof (_a = typeof ILogger_1.ILogger !== "undefined" && ILogger_1.ILogger) === "function" ? _a : Object, typeof (_b = typeof DatabaseServer_1.DatabaseServer !== "undefined" && DatabaseServer_1.DatabaseServer) === "function" ? _b : Object, typeof (_c = typeof VFS_1.VFS !== "undefined" && VFS_1.VFS) === "function" ? _c : Object, typeof (_d = typeof JsonUtil_1.JsonUtil !== "undefined" && JsonUtil_1.JsonUtil) === "function" ? _d : Object])
 ], VulcanLocaleHelper);
 exports.VulcanLocaleHelper = VulcanLocaleHelper;

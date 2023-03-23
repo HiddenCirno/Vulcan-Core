@@ -56,7 +56,6 @@ let VulcanItemEditor = class VulcanItemEditor {
                 }
             }
         }
-        return obj;
     }
     addItem(item) {
         const db = this.databaseServer.getTables();
