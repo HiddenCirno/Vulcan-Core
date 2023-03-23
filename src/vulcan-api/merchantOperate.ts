@@ -17,7 +17,7 @@ interface TraderAssort {
     barter_scheme: Record<string, IBarterScheme[][]>;
     loyal_level_items: Record<string, number>;
 }
-export class traderOperateJsonOdj {
+export class TraderOperateJsonOdj {
     //直接接收原版格式的json，并指定商人售卖
     addTraderAssort(container: DependencyContainer, jsonAssortOdj: TraderAssort, trader: string) {
         const dbs = container.resolve<DatabaseServer>("DatabaseServer");
@@ -45,7 +45,6 @@ export class traderOperateJsonOdj {
         const traderTime: UpdateTime = { traderId: modTraderName, seconds: 3600 }
         traderConfig.updateTime.push(traderTime);
     }
-    addTraderPosrtDBLoad(container: DependencyContainer, jsonAssortOdj: TraderAssort, jsonBaseOdj: object, modTraderName: string, questassort?: object)
     //jsonAssortOdj:直接接收SPT原版格式的assor.json,jsonBaseOdj直接接收SPT原版格式的base.json,modTraderName:添加商人的名字|ID,questassort直接接收SPT原版格式的questassort,PS:也可以之后用其他办法添加
     addTraderPosrtDBLoad(container: DependencyContainer, jsonAssortOdj: TraderAssort, jsonBaseOdj: object, modTraderName: string, questassort: object = { started: {}, success: {}, fail: {} }) {
         const jsonUtil: JsonUtil = container.resolve<JsonUtil>("JsonUtil");
