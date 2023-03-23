@@ -1,14 +1,10 @@
 import { inject, injectable, container, DependencyContainer, Lifecycle } from "tsyringe";
 import { ILogger } from "@spt-aki/models/spt/utils/ILogger";
-import { DatabaseServer } from "@spt-aki/servers/DatabaseServer";
-<<<<<<< HEAD
-import { ItemLocale } from "./localeclass";
+import { DatabaseServer } from "@spt-aki/servers/DatabaseServer";=
 import { ITemplateItem } from "@spt-aki/models/eft/common/tables/ITemplateItem";
-=======
 import { ItemLocale, QuestLocale } from "./localeclass";
 import { VFS } from "@spt-aki/utils/VFS"
 import { JsonUtil } from "@spt-aki/utils/JsonUtil";
->>>>>>> e1267b5bcd45aa396a04cd273b44e022560fe0d3
 @injectable()
 export class VulcanLocaleHelper {
     
