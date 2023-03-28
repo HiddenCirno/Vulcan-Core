@@ -71,6 +71,16 @@ let VulcanLocaleHelper = class VulcanLocaleHelper {
         const itemid = item._id;
         return locale[`${itemid} Name`];
     }
+    setTraderLocale(trader, traderlocale, language) {
+        const db = this.databaseServer.getTables();
+        const traderid = trader.base._id;
+        const locale = db.locales.global[language];
+        locale[`${traderid} Nickname`] = traderlocale.NName;
+        locale[`${traderid} FirstName`] = traderlocale.FName;
+        locale[`${traderid} FullName`] = traderlocale.LName;
+        locale[`${traderid} Location`] = traderlocale.Locate;
+        locale[`${traderid} Description`] = traderlocale.Desc;
+    }
 };
 VulcanLocaleHelper = __decorate([
     (0, tsyringe_1.injectable)(),

@@ -9,6 +9,7 @@ const miscmethod_1 = require("./vulcan-api/miscmethod");
 //import { TraderAppMerchandise, TraderOperateJsonOdj } from "./vulcan-api/merchantOperate";
 const merchantOperate_1 = require("./vulcan-api/merchantOperate");
 const questhelper_1 = require("./vulcan-api/questhelper");
+const traderhelper_1 = require("./vulcan-api/traderhelper");
 //const addTrader = new TraderOperateJsonOdj
 //
 class Mod {
@@ -20,6 +21,7 @@ class Mod {
         tsyringe_1.container.register("TraderAppMerchandise", merchantOperate_1.TraderAppMerchandise, { lifecycle: tsyringe_1.Lifecycle.Singleton });
         tsyringe_1.container.register("VulcanQuestHelper", questhelper_1.VulcanQuestHelper, { lifecycle: tsyringe_1.Lifecycle.Singleton });
         tsyringe_1.container.register("VulcanMiscMethod", miscmethod_1.VulcanMiscMethod, { lifecycle: tsyringe_1.Lifecycle.Singleton });
+        tsyringe_1.container.register("VulcanTraderHelper", traderhelper_1.VulcanTraderHelper, { lifecycle: tsyringe_1.Lifecycle.Singleton });
         //addTrader.addTraderPreAkiload(inFuncContainer,商人名字)
     }
     postAkiLoad(inFuncContainer) {

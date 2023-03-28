@@ -2,9 +2,10 @@ import { inject, injectable, container, DependencyContainer, Lifecycle } from "t
 import { ILogger } from "@spt-aki/models/spt/utils/ILogger";
 import { DatabaseServer } from "@spt-aki/servers/DatabaseServer";=
 import { ITemplateItem } from "@spt-aki/models/eft/common/tables/ITemplateItem";
-import { ItemLocale, QuestLocale } from "./localeclass";
+import { ItemLocale, QuestLocale, TraderLocale } from "./localeclass";
 import { VFS } from "@spt-aki/utils/VFS"
 import { JsonUtil } from "@spt-aki/utils/JsonUtil";
+import { ITrader } from "@spt-aki/models/eft/common/tables/ITrader";
 @injectable()
 export class VulcanLocaleHelper {
     
@@ -60,6 +61,16 @@ export class VulcanLocaleHelper {
         const locale = db.locales.global["ch"]
         const itemid = item._id
         return locale[`${itemid} Name`]
+    }
+    public setTraderLocale(trader: ITrader, traderlocale: TraderLocale, language: string){
+        const db = this.databaseServer.getTables()
+        const traderid = trader.base._id
+        const locale = db.locales.global[language]
+        locale[`${traderid} Nickname`] = traderlocale.NName
+        locale[`${traderid} FirstName`] = traderlocale.FName
+        locale[`${traderid} FullName`] = traderlocale.LName
+        locale[`${traderid} Location`] = traderlocale.Locate
+        locale[`${traderid} Description`] = traderlocale.Desc
     }
 
 }

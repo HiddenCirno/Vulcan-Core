@@ -1,8 +1,45 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.TraderAppMerchandise = void 0;
-class traderOperate {
+exports.TraderAppMerchandise = exports.traderOperateJsonOdj = void 0;
+const ConfigTypes_1 = require("C:/snapshot/project/obj/models/enums/ConfigTypes");
+class traderOperateJsonOdj {
+    //直接接收原版格式的json，并指定商人售卖
+    addTraderAssort(container, jsonAssortOdj, trader) {
+        const dbs = container.resolve("DatabaseServer");
+        const db = dbs.getTables();
+        for (const item of jsonAssortOdj.items) {
+            db.traders[trader].assort.items.push(item);
+        }
+        for (const barterScheme in jsonAssortOdj.barter_scheme) {
+            db.traders[trader].assort.barter_scheme[barterScheme] = jsonAssortOdj.barter_scheme[barterScheme];
+        }
+        for (const loyalLevelItems in jsonAssortOdj.loyal_level_items) {
+            db.traders[trader].assort.loyal_level_items[loyalLevelItems] = jsonAssortOdj.loyal_level_items;
+        }
+    }
+    //载入图片，加入商人刷新时间
+    addTraderPreAkiload(container, modTraderName) {
+        //载入图片
+        const imageRouter = container.resolve("ImageRouter");
+        imageRouter.addRoute(`/files/trader/avatar/${modTraderName}`, `picture/traderAvatar/${modTraderName}`);
+        //商人刷新时间
+        const configServer = container.resolve("ConfigServer");
+        const traderConfig = configServer.getConfig(ConfigTypes_1.ConfigTypes.TRADER);
+        const traderTime = { traderId: modTraderName, seconds: 3600 };
+        traderConfig.updateTime.push(traderTime);
+    }
+    //jsonAssortOdj:直接接收SPT原版格式的assor.json,jsonBaseOdj直接接收SPT原版格式的base.json,modTraderName:添加商人的名字|ID,questassort直接接收SPT原版格式的questassort,PS:也可以之后用其他办法添加
+    addTraderPosrtDBLoad(container, jsonAssortOdj, jsonBaseOdj, modTraderName, questassort = { started: {}, success: {}, fail: {} }) {
+        const jsonUtil = container.resolve("JsonUtil");
+        const dbs = container.resolve("DatabaseServer");
+        const db = dbs.getTables();
+        this.addTraderAssort(container, jsonAssortOdj, modTraderName);
+        db.traders[modTraderName].base = jsonUtil.deserialize(jsonUtil.serialize(jsonBaseOdj));
+        db.traders[modTraderName].questassort = questassort;
+        db.traders[modTraderName].questassort = questassort;
+    }
 }
+exports.traderOperateJsonOdj = traderOperateJsonOdj;
 class TraderAppMerchandise {
     //itemID: 你要卖的东西的ID  ,count:交换品要的个数   ,shoppingGoods:交换品   ,loyal_level:解锁物品的商人等级
     constructor(itemID, count = 1, shoppingGoods = "5449016a4bdc2d6f028b456f", loyal_level = 1, parentId = "hideout", slotId = "hideout", upd = { "StackObjectsCount": 20000 }) {
@@ -21,8 +58,8 @@ class TraderAppMerchandise {
         });
         this.items = new Array();
         this.items.push(item);
-        this.barter_scheme = barterScheme;
-        this.loyal_level_items = loyal_level;
+        this.barter_scheme[item._id] = barterScheme;
+        this.loyal_level_items[item._id] = loyal_level;
     }
     //trader:商人ID
     appMerchandise(container, trader) {

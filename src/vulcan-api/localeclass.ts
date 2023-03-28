@@ -11,3 +11,11 @@ export interface QuestLocale
     Success: string
     Fail: string
 }
+export interface TraderLocale 
+{
+    FName: string
+    LName: string
+    NName: string
+    Desc: string
+    Locate: string
+}

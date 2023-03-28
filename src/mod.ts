@@ -33,6 +33,7 @@ import { VulcanMiscMethod } from "./vulcan-api/miscmethod";
 //import { TraderAppMerchandise, TraderOperateJsonOdj } from "./vulcan-api/merchantOperate";
 import { TraderAppMerchandise } from "./vulcan-api/merchantOperate";
 import { VulcanQuestHelper } from "./vulcan-api/questhelper";
+import { VulcanTraderHelper } from "./vulcan-api/traderhelper";
 //const addTrader = new TraderOperateJsonOdj
 //
 class Mod implements IPreAkiLoadMod {
@@ -45,6 +46,7 @@ class Mod implements IPreAkiLoadMod {
 		container.register<TraderAppMerchandise>("TraderAppMerchandise", TraderAppMerchandise, { lifecycle: Lifecycle.Singleton });
 		container.register<VulcanQuestHelper>("VulcanQuestHelper", VulcanQuestHelper, { lifecycle: Lifecycle.Singleton });
 		container.register<VulcanMiscMethod>("VulcanMiscMethod", VulcanMiscMethod, { lifecycle: Lifecycle.Singleton });
+		container.register<VulcanTraderHelper>("VulcanTraderHelper", VulcanTraderHelper, { lifecycle: Lifecycle.Singleton });
 
 
     
