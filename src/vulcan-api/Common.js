@@ -928,6 +928,8 @@ let VulcanCommon = class VulcanCommon {
                     switch (Data.type) {
                         case "Find":
                             {
+                                this.databaseServer.getTables().locales.global.ch[Data.id] = Data.locale;
+                                this.databaseServer.getTables().locales.global.en[Data.id] = Data.enlocale;
                                 QFinish.push({
                                     "conditionType": "FindItem",
                                     "countInRaid": false,
@@ -951,6 +953,8 @@ let VulcanCommon = class VulcanCommon {
                             break;
                         case "Hand":
                             {
+                                this.databaseServer.getTables().locales.global.ch[Data.id] = Data.locale;
+                                this.databaseServer.getTables().locales.global.en[Data.id] = Data.enlocale;
                                 QFinish.push({
                                     "conditionType": "HandoverItem",
                                     "dogtagLevel": 0,
@@ -973,6 +977,8 @@ let VulcanCommon = class VulcanCommon {
                             break;
                         case "Kill":
                             {
+                                this.databaseServer.getTables().locales.global.ch[Data.id] = Data.locale;
+                                this.databaseServer.getTables().locales.global.en[Data.id] = Data.enlocale;
                                 QFinish.push({
                                     "completeInSeconds": 0,
                                     "conditionType": "CounterCreator",
@@ -1061,6 +1067,8 @@ let VulcanCommon = class VulcanCommon {
                             break;
                         case "Level":
                             {
+                                this.databaseServer.getTables().locales.global.ch[Data.id] = Data.locale;
+                                this.databaseServer.getTables().locales.global.en[Data.id] = Data.enlocale;
                                 QFinish.push({
                                     "conditionType": "Level",
                                     "id": Data.id,
@@ -1079,6 +1087,8 @@ let VulcanCommon = class VulcanCommon {
                             break;
                         case "Visit":
                             {
+                                this.databaseServer.getTables().locales.global.ch[Data.id] = Data.locale;
+                                this.databaseServer.getTables().locales.global.en[Data.id] = Data.enlocale;
                                 QFinish.push({
                                     "completeInSeconds": 0,
                                     "conditionType": "CounterCreator",
@@ -1087,7 +1097,7 @@ let VulcanCommon = class VulcanCommon {
                                             {
                                                 "conditionType": "VisitPlace",
                                                 "dynamicLocale": false,
-                                                "id": `${Data.id}`,
+                                                "id": `${Data.id}指示器目标`,
                                                 "target": Data.zoneid,
                                                 "value": 1
                                             }
@@ -1109,6 +1119,8 @@ let VulcanCommon = class VulcanCommon {
                             break;
                         case "Leave":
                             {
+                                this.databaseServer.getTables().locales.global.ch[Data.id] = Data.locale;
+                                this.databaseServer.getTables().locales.global.en[Data.id] = Data.enlocale;
                                 QFinish.push({
                                     "conditionType": "LeaveItemAtLocation",
                                     "dogtagLevel": 0,
@@ -1133,6 +1145,8 @@ let VulcanCommon = class VulcanCommon {
                             break;
                         case "Extract":
                             {
+                                this.databaseServer.getTables().locales.global.ch[Data.id] = Data.locale;
+                                this.databaseServer.getTables().locales.global.en[Data.id] = Data.enlocale;
                                 QFinish.push({
                                     "completeInSeconds": 0,
                                     "conditionType": "CounterCreator",
@@ -1175,6 +1189,8 @@ let VulcanCommon = class VulcanCommon {
                             }
                             break;
                         case "Skill": {
+                            this.databaseServer.getTables().locales.global.ch[Data.id] = Data.locale;
+                            this.databaseServer.getTables().locales.global.en[Data.id] = Data.enlocale;
                             QFinish.push({
                                 "compareMethod": ">=",
                                 "conditionType": "Skill",
@@ -2719,6 +2735,7 @@ let VulcanCommon = class VulcanCommon {
                         {
                             var localekey = this.generateHash(`${Data.id}>${performance.now()}`);
                             this.databaseServer.getTables().locales.global.ch[localekey] = Data.locale;
+                            this.databaseServer.getTables().locales.global.en[localekey] = Data.enlocale;
                             QFinish.push({
                                 "conditionType": "FindItem",
                                 "countInRaid": false,
@@ -2744,6 +2761,7 @@ let VulcanCommon = class VulcanCommon {
                         {
                             var localekey = this.generateHash(`${Data.id}>${performance.now()}`);
                             this.databaseServer.getTables().locales.global.ch[localekey] = Data.locale;
+                            this.databaseServer.getTables().locales.global.en[localekey] = Data.enlocale;
                             QFinish.push({
                                 "conditionType": "HandoverItem",
                                 "dogtagLevel": 0,
@@ -2766,17 +2784,20 @@ let VulcanCommon = class VulcanCommon {
                         break;
                     case "Kill":
                         {
+                            var localekey = this.generateHash(`${Data.id}>${performance.now()}`);
+                            this.databaseServer.getTables().locales.global.ch[localekey] = Data.locale;
+                            this.databaseServer.getTables().locales.global.en[localekey] = Data.enlocale;
                             QFinish.push({
                                 "completeInSeconds": 0,
                                 "conditionType": "CounterCreator",
                                 "counter": {
                                     "conditions": [],
-                                    "id": `${Data.id}指示器`
+                                    "id": `${localekey}指示器`
                                 },
                                 "doNotResetIfCounterCompleted": false,
                                 "dynamicLocale": false,
                                 "globalQuestCounterId": "",
-                                "id": Data.id,
+                                "id": localekey,
                                 "index": i,
                                 "oneSessionOnly": Data.oneraid,
                                 "parentId": "",
@@ -2800,7 +2821,7 @@ let VulcanCommon = class VulcanCommon {
                                 "enemyEquipmentExclusive": [],
                                 "enemyEquipmentInclusive": [],
                                 "enemyHealthEffects": [],
-                                "id": `${Data.id}指示器条件`,
+                                "id": `${localekey}指示器条件`,
                                 "resetOnSessionEnd": false,
                                 "savageRole": Data.role,
                                 "target": Data.bot,
@@ -2814,7 +2835,7 @@ let VulcanCommon = class VulcanCommon {
                                 QFinish[QFinish.length - 1].counter.conditions.push({
                                     "conditionType": "Location",
                                     "dynamicLocale": false,
-                                    "id": `${Data.id}_地图需求`,
+                                    "id": `${localekey}_地图需求`,
                                     "target": Data.location
                                 });
                             }
@@ -2822,7 +2843,7 @@ let VulcanCommon = class VulcanCommon {
                                 QFinish[QFinish.length - 1].counter.conditions.push({
                                     "conditionType": "InZone",
                                     "dynamicLocale": false,
-                                    "id": `${Data.id}_地点需求`,
+                                    "id": `${localekey}_地点需求`,
                                     "zoneIds": Data.zone
                                 });
                             }
@@ -2834,7 +2855,7 @@ let VulcanCommon = class VulcanCommon {
                                         "dynamicLocale": false,
                                         "equipmentExclusive": [],
                                         "equipmentInclusive": [],
-                                        "id": `${Data.id}_装备需求${j}`
+                                        "id": `${localekey}_装备需求${j}`
                                     });
                                     for (var k = 0; k < Data.Equip[j].length; k++) {
                                         QFinish[QFinish.length - 1].counter.conditions[QFinish[QFinish.length - 1].counter.conditions.length - 1].equipmentInclusive.push([
@@ -2854,9 +2875,12 @@ let VulcanCommon = class VulcanCommon {
                         break;
                     case "Level":
                         {
+                            var localekey = this.generateHash(`${Data.id}>${performance.now()}`);
+                            this.databaseServer.getTables().locales.global.ch[localekey] = Data.locale;
+                            this.databaseServer.getTables().locales.global.en[localekey] = Data.enlocale;
                             QFinish.push({
                                 "conditionType": "Level",
-                                "id": Data.id,
+                                "id": localekey,
                                 "index": i,
                                 "parentId": "",
                                 "dynamicLocale": false,
@@ -2872,6 +2896,9 @@ let VulcanCommon = class VulcanCommon {
                         break;
                     case "Visit":
                         {
+                            var localekey = this.generateHash(`${Data.id}>${performance.now()}`);
+                            this.databaseServer.getTables().locales.global.ch[localekey] = Data.locale;
+                            this.databaseServer.getTables().locales.global.en[localekey] = Data.enlocale;
                             QFinish.push({
                                 "completeInSeconds": 0,
                                 "conditionType": "CounterCreator",
@@ -2880,17 +2907,17 @@ let VulcanCommon = class VulcanCommon {
                                         {
                                             "conditionType": "VisitPlace",
                                             "dynamicLocale": false,
-                                            "id": `${Data.id}`,
+                                            "id": `${localekey}指示器目标`,
                                             "target": Data.zoneid,
                                             "value": 1
                                         }
                                     ],
-                                    "id": `${Data.id}指示器`
+                                    "id": `${localekey}指示器`
                                 },
                                 "doNotResetIfCounterCompleted": false,
                                 "dynamicLocale": false,
                                 "globalQuestCounterId": "",
-                                "id": Data.id,
+                                "id": localekey,
                                 "index": i,
                                 "oneSessionOnly": Data.oneraid,
                                 "parentId": "",
@@ -2902,12 +2929,15 @@ let VulcanCommon = class VulcanCommon {
                         break;
                     case "Leave":
                         {
+                            var localekey = this.generateHash(`${Data.id}>${performance.now()}`);
+                            this.databaseServer.getTables().locales.global.ch[localekey] = Data.locale;
+                            this.databaseServer.getTables().locales.global.en[localekey] = Data.enlocale;
                             QFinish.push({
                                 "conditionType": "LeaveItemAtLocation",
                                 "dogtagLevel": 0,
                                 "dynamicLocale": false,
                                 "globalQuestCounterId": "",
-                                "id": Data.id,
+                                "id": localekey,
                                 "index": i,
                                 "isEncoded": false,
                                 "maxDurability": 100,
@@ -2926,6 +2956,9 @@ let VulcanCommon = class VulcanCommon {
                         break;
                     case "Extract":
                         {
+                            var localekey = this.generateHash(`${Data.id}>${performance.now()}`);
+                            this.databaseServer.getTables().locales.global.ch[localekey] = Data.locale;
+                            this.databaseServer.getTables().locales.global.en[localekey] = Data.enlocale;
                             QFinish.push({
                                 "completeInSeconds": 0,
                                 "conditionType": "CounterCreator",
@@ -2934,22 +2967,22 @@ let VulcanCommon = class VulcanCommon {
                                         {
                                             "conditionType": "Location",
                                             "dynamicLocale": false,
-                                            "id": `${Data.id}指示器_Location`,
+                                            "id": `${localekey}指示器_Location`,
                                             "target": Data.location
                                         },
                                         {
                                             "conditionType": "ExitStatus",
                                             "dynamicLocale": false,
-                                            "id": `${Data.id}指示器_ExitStatus`,
+                                            "id": `${localekey}指示器_ExitStatus`,
                                             "status": Data.status
                                         }
                                     ],
-                                    "id": `${Data.id}指示器`
+                                    "id": `${localekey}指示器`
                                 },
                                 "doNotResetIfCounterCompleted": false,
                                 "dynamicLocale": false,
                                 "globalQuestCounterId": "",
-                                "id": Data.id,
+                                "id": localekey,
                                 "index": 0,
                                 "oneSessionOnly": Data.oneraid,
                                 "parentId": "",
@@ -2962,18 +2995,21 @@ let VulcanCommon = class VulcanCommon {
                                     "conditionType": "ExitName",
                                     "dynamicLocale": false,
                                     "exitName": Data.extractpoint,
-                                    "id": `${Data.id}指示器_ExitName`
+                                    "id": `${localekey}指示器_ExitName`
                                 });
                             }
                         }
                         break;
                     case "Skill": {
+                        var localekey = this.generateHash(`${Data.id}>${performance.now()}`);
+                        this.databaseServer.getTables().locales.global.ch[localekey] = Data.locale;
+                        this.databaseServer.getTables().locales.global.en[localekey] = Data.enlocale;
                         QFinish.push({
                             "compareMethod": ">=",
                             "conditionType": "Skill",
                             "dynamicLocale": false,
                             "globalQuestCounterId": "",
-                            "id": Data.id,
+                            "id": localekey,
                             "index": 0,
                             "parentId": "",
                             "target": Data.skill,

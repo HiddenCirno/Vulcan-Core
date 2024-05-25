@@ -38,9 +38,13 @@ class Mod {
         // the login() function with the one below called 'replacementFunction()
         container.afterResolution("RepeatableQuestRewardGenerator", (_t, result) => {
             // We want to replace the original method logic with something different
-            result.generateReward = (pmcLevel, difficulty, traderId, repeatableConfig, questConfig) => {
-                return this.generateReward(pmcLevel, difficulty, traderId, repeatableConfig, questConfig);
-            };
+            //result.generateReward = (pmcLevel: number,
+            //    difficulty: number,
+            //    traderId: string,
+            //    repeatableConfig: IRepeatableQuestConfig,
+            //    questConfig: IBaseQuestConfig,) => {
+            //    return this.generateReward(pmcLevel, difficulty, traderId, repeatableConfig, questConfig)
+            //}
             // The modifier Always makes sure this replacement method is ALWAYS replaced
         }, { frequency: "Always" });
         container.afterResolution("RepeatableQuestGenerator", (_t, result) => {
@@ -240,14 +244,26 @@ class Mod {
             traders = traders.filter((x) => pmcTraderInfo[x].unlocked);
             const traderId = randomUtil.drawRandomFromList(traders)[0];
             switch (questType) {
-                case "Elimination":
-                    return repeatableQuestGenerator.generateEliminationQuest(pmcLevel, traderId, questTypePool, repeatableConfig);
-                case "Completion":
-                    return repeatableQuestGenerator.generateCompletionQuest(pmcLevel, traderId, repeatableConfig);
-                case "Exploration":
-                    return repeatableQuestGenerator.generateExplorationQuest(pmcLevel, traderId, questTypePool, repeatableConfig);
-                case "Pickup":
-                    return repeatableQuestGenerator.generatePickupQuest(pmcLevel, traderId, questTypePool, repeatableConfig);
+                case "Elimination": {
+                    const quest = repeatableQuestGenerator.generateEliminationQuest(pmcLevel, traderId, questTypePool, repeatableConfig);
+                    quest.rewards = this.generateReward(pmcLevel, 1, traderId, repeatableConfig, repeatableConfig.questConfig.Elimination);
+                    return quest;
+                }
+                case "Completion": {
+                    const quest = repeatableQuestGenerator.generateEliminationQuest(pmcLevel, traderId, questTypePool, repeatableConfig);
+                    quest.rewards = this.generateReward(pmcLevel, 1, traderId, repeatableConfig, repeatableConfig.questConfig.Completion);
+                    return quest;
+                }
+                case "Exploration": {
+                    const quest = repeatableQuestGenerator.generateEliminationQuest(pmcLevel, traderId, questTypePool, repeatableConfig);
+                    quest.rewards = this.generateReward(pmcLevel, 1, traderId, repeatableConfig, repeatableConfig.questConfig.Exploration);
+                    return quest;
+                }
+                case "Pickup": {
+                    const quest = repeatableQuestGenerator.generateEliminationQuest(pmcLevel, traderId, questTypePool, repeatableConfig);
+                    quest.rewards = this.generateReward(pmcLevel, 1, traderId, repeatableConfig, repeatableConfig.questConfig.Pickup);
+                    return quest;
+                }
                 default:
                     throw new Error(`Unknown mission type ${questType}. Should never be here!`);
             }
@@ -278,7 +294,7 @@ class Mod {
         common.initQuestCondDaily(pickupConfig.conds, quest);
         common.Log(JSON.stringify(quest, null, 4));
         // Add rewards
-        quest.rewards = repeatableQuestRewardGenerator.generateReward(pmcLevel, 1, traderId, repeatableConfig, pickupConfig);
+        quest.rewards = this.generateReward(pmcLevel, 1, traderId, repeatableConfig, pickupConfig);
         return quest;
     }
     generateRepeatableTemplate(type, traderId, side, repeatableConfig) {
@@ -286,7 +302,7 @@ class Mod {
         const databaseServer = Mod.container.resolve("DatabaseServer");
         const common = Mod.container.resolve("VulcanCommon");
         const questClone = jsonUtil.clone(databaseServer.getTables().templates.repeatableQuests.templates[type]);
-        questClone._id = common.generateHash(`${repeatableConfig.questConfig.RITCCustom.name}:${traderId}_${side}`);
+        questClone._id = common.generateHash(`${repeatableConfig.questConfig.RITCCustom.name}_${performance.now()}`);
         questClone.traderId = traderId;
         /*  in locale, these id correspond to the text of quests
             template ids -pmc  : Elimination = 616052ea3054fc0e2c24ce6e / Completion = 61604635c725987e815b1a46 / Exploration = 616041eb031af660100c9967
@@ -305,6 +321,40 @@ class Mod {
         questClone.declinePlayerMessage = questClone.declinePlayerMessage.replace("{traderId}", traderId).replace("{templateId}", questClone.templateId);
         questClone.completePlayerMessage = questClone.completePlayerMessage.replace("{traderId}", traderId).replace("{templateId}", questClone.templateId);
         return questClone;
+    }
+    openRandomLootContainer(pmcData, body, sessionID, output) {
+        /** Container player opened in their inventory */
+        const openedItem = pmcData.Inventory.items.find((item) => item._id === body.item);
+        const containerDetailsDb = this.itemHelper.getItem(openedItem._tpl);
+        const isSealedWeaponBox = containerDetailsDb[1]._name.includes("event_container_airdrop");
+        let foundInRaid = openedItem.upd?.SpawnedInSession;
+        const rewards = [];
+        if (isSealedWeaponBox) {
+            const containerSettings = this.inventoryHelper.getInventoryConfig().sealedAirdropContainer;
+            rewards.push(...this.lootGenerator.getSealedWeaponCaseLoot(containerSettings));
+            if (containerSettings.foundInRaid) {
+                foundInRaid = containerSettings.foundInRaid;
+            }
+        }
+        else {
+            const rewardContainerDetails = this.inventoryHelper.getRandomLootContainerRewardDetails(openedItem._tpl);
+            rewards.push(...this.lootGenerator.getRandomLootContainerLoot(rewardContainerDetails));
+            if (rewardContainerDetails.foundInRaid) {
+                foundInRaid = rewardContainerDetails.foundInRaid;
+            }
+        }
+        const addItemsRequest = {
+            itemsWithModsToAdd: rewards,
+            foundInRaid: foundInRaid,
+            callback: null,
+            useSortingTable: true,
+        };
+        this.inventoryHelper.addItemsToStash(sessionID, addItemsRequest, pmcData, output);
+        if (output.warnings.length > 0) {
+            return;
+        }
+        // Find and delete opened container item from player inventory
+        this.inventoryHelper.removeItem(pmcData, body.item, sessionID, output);
     }
 }
 module.exports = { mod: new Mod() };
