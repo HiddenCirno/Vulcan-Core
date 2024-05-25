@@ -18,22 +18,27 @@ const tsyringe_1 = require("C:/snapshot/project/node_modules/tsyringe");
 const ILogger_1 = require("C:/snapshot/project/obj/models/spt/utils/ILogger");
 const LogTextColor_1 = require("C:/snapshot/project/obj/models/spt/logging/LogTextColor");
 let VulcanConsole = class VulcanConsole {
+    logger;
     constructor(logger) {
         this.logger = logger;
     }
     Log(string) {
-        this.logger.logWithColor(`[控制台信息]: ${string}`, LogTextColor_1.LogTextColor.CYAN);
+        this.logger.logWithColor(`[火神之心]: ${string}`, LogTextColor_1.LogTextColor.YELLOW);
     }
     Access(string) {
-        this.logger.logWithColor(`[控制台信息]: ${string}`, LogTextColor_1.LogTextColor.GREEN);
+        this.logger.logWithColor(`[火神之心]: ${string}`, LogTextColor_1.LogTextColor.GREEN);
     }
     Error(string) {
-        this.logger.logWithColor(`[控制台信息]: ${string}`, LogTextColor_1.LogTextColor.RED);
+        this.logger.logWithColor(`[火神之心]: ${string}`, LogTextColor_1.LogTextColor.RED);
+    }
+    Warn(string) {
+        this.logger.logWithColor(`[火神之心]: ${string}`, LogTextColor_1.LogTextColor.RED);
     }
 };
-VulcanConsole = __decorate([
+exports.VulcanConsole = VulcanConsole;
+exports.VulcanConsole = VulcanConsole = __decorate([
     (0, tsyringe_1.injectable)(),
     __param(0, (0, tsyringe_1.inject)("WinstonLogger")),
     __metadata("design:paramtypes", [typeof (_a = typeof ILogger_1.ILogger !== "undefined" && ILogger_1.ILogger) === "function" ? _a : Object])
 ], VulcanConsole);
-exports.VulcanConsole = VulcanConsole;
+//# sourceMappingURL=console.js.map

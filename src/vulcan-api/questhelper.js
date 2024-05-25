@@ -21,6 +21,11 @@ const itemedit_1 = require("./itemedit");
 const localehelper_1 = require("./localehelper");
 const miscmethod_1 = require("./miscmethod");
 let VulcanQuestHelper = class VulcanQuestHelper {
+    logger;
+    databaseServer;
+    itemEditor;
+    localehelper;
+    miscMethod;
     constructor(logger, databaseServer, itemEditor, localehelper, miscMethod) {
         this.logger = logger;
         this.databaseServer = databaseServer;
@@ -598,7 +603,8 @@ let VulcanQuestHelper = class VulcanQuestHelper {
         };
     }
 };
-VulcanQuestHelper = __decorate([
+exports.VulcanQuestHelper = VulcanQuestHelper;
+exports.VulcanQuestHelper = VulcanQuestHelper = __decorate([
     (0, tsyringe_1.injectable)(),
     __param(0, (0, tsyringe_1.inject)("WinstonLogger")),
     __param(1, (0, tsyringe_1.inject)("DatabaseServer")),
@@ -607,4 +613,4 @@ VulcanQuestHelper = __decorate([
     __param(4, (0, tsyringe_1.inject)("VulcanMiscMethod")),
     __metadata("design:paramtypes", [typeof (_a = typeof ILogger_1.ILogger !== "undefined" && ILogger_1.ILogger) === "function" ? _a : Object, typeof (_b = typeof DatabaseServer_1.DatabaseServer !== "undefined" && DatabaseServer_1.DatabaseServer) === "function" ? _b : Object, typeof (_c = typeof itemedit_1.VulcanItemEditor !== "undefined" && itemedit_1.VulcanItemEditor) === "function" ? _c : Object, typeof (_d = typeof localehelper_1.VulcanLocaleHelper !== "undefined" && localehelper_1.VulcanLocaleHelper) === "function" ? _d : Object, typeof (_e = typeof miscmethod_1.VulcanMiscMethod !== "undefined" && miscmethod_1.VulcanMiscMethod) === "function" ? _e : Object])
 ], VulcanQuestHelper);
-exports.VulcanQuestHelper = VulcanQuestHelper;
+//# sourceMappingURL=questhelper.js.map

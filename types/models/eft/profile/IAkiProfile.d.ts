@@ -1,12 +1,15 @@
-import { MemberCategory } from "../../../models/enums/MemberCategory";
-import { MessageType } from "../../enums/MessageType";
-import { IPmcData } from "../common/IPmcData";
-import { Item } from "../common/tables/IItem";
+import { IPmcData } from "@spt-aki/models/eft/common/IPmcData";
+import { Item } from "@spt-aki/models/eft/common/tables/IItem";
+import { EquipmentBuildType } from "@spt-aki/models/enums/EquipmentBuildType";
+import { MemberCategory } from "@spt-aki/models/enums/MemberCategory";
+import { MessageType } from "@spt-aki/models/enums/MessageType";
+import { IProfileChangeEvent } from "@spt-aki/models/spt/dialog/ISendMessageDetails";
 export interface IAkiProfile {
     info: Info;
     characters: Characters;
+    /** Clothing purchases */
     suits: string[];
-    weaponbuilds: WeaponBuild[];
+    userbuilds: IUserBuilds;
     dialogues: Record<string, Dialogue>;
     aki: Aki;
     vitality: Vitality;
@@ -14,13 +17,18 @@ export interface IAkiProfile {
     insurance: Insurance[];
     /** Assort purchases made by player since last trader refresh */
     traderPurchases?: Record<string, Record<string, TraderPurchaseData>>;
+    /** Achievements earned by player */
+    achievements: Record<string, number>;
 }
 export declare class TraderPurchaseData {
     count: number;
     purchaseTimestamp: number;
 }
 export interface Info {
+    /** main profile id */
     id: string;
+    scavId: string;
+    aid: number;
     username: string;
     password: string;
     wipe: boolean;
@@ -30,24 +38,55 @@ export interface Characters {
     pmc: IPmcData;
     scav: IPmcData;
 }
-export interface WeaponBuild {
-    id: string;
-    name: string;
-    root: string;
-    items: Item[];
+/** used by profile.userbuilds */
+export interface IUserBuilds {
+    weaponBuilds: IWeaponBuild[];
+    equipmentBuilds: IEquipmentBuild[];
+    magazineBuilds: IMagazineBuild[];
+}
+export interface IUserBuild {
+    Id: string;
+    Name: string;
+}
+export interface IWeaponBuild extends IUserBuild {
+    Root: string;
+    Items: Item[];
+}
+export interface IEquipmentBuild extends IUserBuild {
+    Root: string;
+    Items: Item[];
+    BuildType: EquipmentBuildType;
+}
+export interface IMagazineBuild extends IUserBuild {
+    Caliber: string;
+    TopCount: number;
+    BottomCount: number;
+    Items: IMagazineTemplateAmmoItem[];
+}
+export interface IMagazineTemplateAmmoItem {
+    TemplateId: string;
+    Count: number;
+}
+/** Used by defaultEquipmentPresets.json */
+export interface IDefaultEquipmentPreset extends IUserBuild {
+    Items: Item[];
+    Root: string;
+    BuildType: EquipmentBuildType;
+    type: string;
 }
 export interface Dialogue {
     attachmentsNew: number;
-    type: MessageType;
     new: number;
-    _id: string;
+    type: MessageType;
     Users?: IUserDialogInfo[];
     pinned: boolean;
     messages: Message[];
+    _id: string;
 }
 export interface IUserDialogInfo {
     _id: string;
-    info: IUserDialogDetails;
+    aid: number;
+    Info: IUserDialogDetails;
 }
 export interface IUserDialogDetails {
     Nickname: string;
@@ -61,7 +100,7 @@ export interface DialogueInfo {
     _id: string;
     type: MessageType;
     pinned: boolean;
-    Users?: any[];
+    Users?: IUserDialogInfo[];
     message: MessagePreview;
 }
 export interface Message {
@@ -73,12 +112,12 @@ export interface Message {
     Member?: IUpdatableChatMember;
     templateId?: string;
     text?: string;
-    hasRewards: boolean;
+    hasRewards?: boolean;
     rewardCollected: boolean;
-    items: MessageItems;
+    items?: MessageItems;
     maxStorageTime?: number;
     systemData?: ISystemData;
-    profileChangeEvents?: any[];
+    profileChangeEvents?: IProfileChangeEvent[];
 }
 export interface MessagePreview {
     uid: string;
@@ -104,7 +143,7 @@ export interface IUpdatableChatMember {
     Nickname: string;
     Side: string;
     Level: number;
-    MemberCategory: string;
+    MemberCategory: MemberCategory;
     Ignored: boolean;
     Banned: boolean;
 }
@@ -115,12 +154,18 @@ export interface DateTime {
 export interface Aki {
     version: string;
     mods?: ModDetails[];
+    receivedGifts: ReceivedGift[];
 }
 export interface ModDetails {
     name: string;
     version: string;
     author: string;
     dateAdded: number;
+    url: string;
+}
+export interface ReceivedGift {
+    giftId: string;
+    timestampAccepted: number;
 }
 export interface Vitality {
     health: Health;
@@ -172,17 +217,11 @@ export interface Inraid {
 export interface Insurance {
     scheduledTime: number;
     traderId: string;
-    messageContent: MessageContent;
+    maxStorageTime: number;
+    systemData: ISystemData;
+    messageType: MessageType;
+    messageTemplateId: string;
     items: Item[];
-}
-export interface MessageContent {
-    ragfair?: MessageContentRagfair;
-    text?: string;
-    templateId: string;
-    type: MessageType;
-    maxStorageTime?: number;
-    profileChangeEvents?: any[];
-    systemData?: ISystemData;
 }
 export interface MessageContentRagfair {
     offerId: string;

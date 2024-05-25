@@ -20,6 +20,10 @@ const ImporterUtil_1 = require("C:/snapshot/project/obj/utils/ImporterUtil");
 const DatabaseServer_1 = require("C:/snapshot/project/obj/servers/DatabaseServer");
 const handbook_1 = require("./handbook");
 let VulcanItemEditor = class VulcanItemEditor {
+    logger;
+    importUtil;
+    databaseServer;
+    handbookHelper;
     constructor(logger, importUtil, databaseServer, handbookHelper) {
         this.logger = logger;
         this.importUtil = importUtil;
@@ -86,7 +90,8 @@ let VulcanItemEditor = class VulcanItemEditor {
         db.traders[trader].assort.loyal_level_items[itemid] = 1;
     }
 };
-VulcanItemEditor = __decorate([
+exports.VulcanItemEditor = VulcanItemEditor;
+exports.VulcanItemEditor = VulcanItemEditor = __decorate([
     (0, tsyringe_1.injectable)(),
     __param(0, (0, tsyringe_1.inject)("WinstonLogger")),
     __param(1, (0, tsyringe_1.inject)("ImporterUtil")),
@@ -94,4 +99,4 @@ VulcanItemEditor = __decorate([
     __param(3, (0, tsyringe_1.inject)("VulcanHandBookHelper")),
     __metadata("design:paramtypes", [typeof (_a = typeof ILogger_1.ILogger !== "undefined" && ILogger_1.ILogger) === "function" ? _a : Object, typeof (_b = typeof ImporterUtil_1.ImporterUtil !== "undefined" && ImporterUtil_1.ImporterUtil) === "function" ? _b : Object, typeof (_c = typeof DatabaseServer_1.DatabaseServer !== "undefined" && DatabaseServer_1.DatabaseServer) === "function" ? _c : Object, typeof (_d = typeof handbook_1.VulcanHandBookHelper !== "undefined" && handbook_1.VulcanHandBookHelper) === "function" ? _d : Object])
 ], VulcanItemEditor);
-exports.VulcanItemEditor = VulcanItemEditor;
+//# sourceMappingURL=itemedit.js.map

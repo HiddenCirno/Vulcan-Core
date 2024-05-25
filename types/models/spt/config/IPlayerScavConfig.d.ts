@@ -1,5 +1,5 @@
-import { MinMax } from "../../common/MinMax";
-import { IBaseConfig } from "./IBaseConfig";
+import { GenerationData } from "@spt-aki/models/eft/common/tables/IBotType";
+import { IBaseConfig } from "@spt-aki/models/spt/config/IBaseConfig";
 export interface IPlayerScavConfig extends IBaseConfig {
     kind: "aki-playerscav";
     karmaLevel: Record<string, KarmaLevel>;
@@ -9,17 +9,17 @@ export interface KarmaLevel {
     modifiers: Modifiers;
     itemLimits: ItemLimits;
     equipmentBlacklist: Record<string, string[]>;
-    labsAccessCardChancePercent: number;
+    lootItemsToAddChancePercent: Record<string, number>;
 }
 export interface Modifiers {
     equipment: Record<string, number>;
     mod: Record<string, number>;
 }
 export interface ItemLimits {
-    healing: MinMax;
-    drugs: MinMax;
-    stims: MinMax;
-    looseLoot: MinMax;
-    magazines: MinMax;
-    grenades: MinMax;
+    healing: GenerationData;
+    drugs: GenerationData;
+    stims: GenerationData;
+    looseLoot: GenerationData;
+    magazines: GenerationData;
+    grenades: GenerationData;
 }

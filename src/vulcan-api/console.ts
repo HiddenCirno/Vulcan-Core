@@ -10,13 +10,16 @@ export class VulcanConsole {
     )
     { }
     public Log(string: String){
-        this.logger.logWithColor(`[控制台信息]: ${string}`, LogTextColor.CYAN)
+        this.logger.logWithColor(`[火神之心]: ${string}`, LogTextColor.YELLOW)
     }
     public Access(string: String){
-        this.logger.logWithColor(`[控制台信息]: ${string}`, LogTextColor.GREEN)
+        this.logger.logWithColor(`[火神之心]: ${string}`, LogTextColor.GREEN)
     }
     public Error(string: String){
-        this.logger.logWithColor(`[控制台信息]: ${string}`, LogTextColor.RED)
+        this.logger.logWithColor(`[火神之心]: ${string}`, LogTextColor.RED)
+    }
+    public Warn(string: String){
+        this.logger.logWithColor(`[火神之心]: ${string}`, LogTextColor.RED)
     }
 
 }

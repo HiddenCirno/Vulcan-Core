@@ -1,20 +1,21 @@
-import { BotGeneratorHelper } from "../helpers/BotGeneratorHelper";
-import { BotHelper } from "../helpers/BotHelper";
-import { WeightedRandomHelper } from "../helpers/WeightedRandomHelper";
-import { Inventory as PmcInventory } from "../models/eft/common/tables/IBotBase";
-import { Chances, Generation, IBotType, Inventory, Mods } from "../models/eft/common/tables/IBotType";
-import { EquipmentSlots } from "../models/enums/EquipmentSlots";
-import { EquipmentFilterDetails, IBotConfig, RandomisationDetails } from "../models/spt/config/IBotConfig";
-import { ILogger } from "../models/spt/utils/ILogger";
-import { ConfigServer } from "../servers/ConfigServer";
-import { DatabaseServer } from "../servers/DatabaseServer";
-import { BotEquipmentModPoolService } from "../services/BotEquipmentModPoolService";
-import { LocalisationService } from "../services/LocalisationService";
-import { HashUtil } from "../utils/HashUtil";
-import { RandomUtil } from "../utils/RandomUtil";
-import { BotEquipmentModGenerator } from "./BotEquipmentModGenerator";
-import { BotLootGenerator } from "./BotLootGenerator";
-import { BotWeaponGenerator } from "./BotWeaponGenerator";
+import { BotEquipmentModGenerator } from "@spt-aki/generators/BotEquipmentModGenerator";
+import { BotLootGenerator } from "@spt-aki/generators/BotLootGenerator";
+import { BotWeaponGenerator } from "@spt-aki/generators/BotWeaponGenerator";
+import { BotGeneratorHelper } from "@spt-aki/helpers/BotGeneratorHelper";
+import { BotHelper } from "@spt-aki/helpers/BotHelper";
+import { ItemHelper } from "@spt-aki/helpers/ItemHelper";
+import { WeightedRandomHelper } from "@spt-aki/helpers/WeightedRandomHelper";
+import { Inventory as PmcInventory } from "@spt-aki/models/eft/common/tables/IBotBase";
+import { Chances, Generation, IBotType, Inventory, Mods } from "@spt-aki/models/eft/common/tables/IBotType";
+import { EquipmentSlots } from "@spt-aki/models/enums/EquipmentSlots";
+import { EquipmentFilterDetails, EquipmentFilters, IBotConfig, RandomisationDetails } from "@spt-aki/models/spt/config/IBotConfig";
+import { ILogger } from "@spt-aki/models/spt/utils/ILogger";
+import { ConfigServer } from "@spt-aki/servers/ConfigServer";
+import { DatabaseServer } from "@spt-aki/servers/DatabaseServer";
+import { BotEquipmentModPoolService } from "@spt-aki/services/BotEquipmentModPoolService";
+import { LocalisationService } from "@spt-aki/services/LocalisationService";
+import { HashUtil } from "@spt-aki/utils/HashUtil";
+import { RandomUtil } from "@spt-aki/utils/RandomUtil";
 export declare class BotInventoryGenerator {
     protected logger: ILogger;
     protected hashUtil: HashUtil;
@@ -25,16 +26,17 @@ export declare class BotInventoryGenerator {
     protected botGeneratorHelper: BotGeneratorHelper;
     protected botHelper: BotHelper;
     protected weightedRandomHelper: WeightedRandomHelper;
+    protected itemHelper: ItemHelper;
     protected localisationService: LocalisationService;
     protected botEquipmentModPoolService: BotEquipmentModPoolService;
     protected botEquipmentModGenerator: BotEquipmentModGenerator;
     protected configServer: ConfigServer;
     protected botConfig: IBotConfig;
-    constructor(logger: ILogger, hashUtil: HashUtil, randomUtil: RandomUtil, databaseServer: DatabaseServer, botWeaponGenerator: BotWeaponGenerator, botLootGenerator: BotLootGenerator, botGeneratorHelper: BotGeneratorHelper, botHelper: BotHelper, weightedRandomHelper: WeightedRandomHelper, localisationService: LocalisationService, botEquipmentModPoolService: BotEquipmentModPoolService, botEquipmentModGenerator: BotEquipmentModGenerator, configServer: ConfigServer);
+    constructor(logger: ILogger, hashUtil: HashUtil, randomUtil: RandomUtil, databaseServer: DatabaseServer, botWeaponGenerator: BotWeaponGenerator, botLootGenerator: BotLootGenerator, botGeneratorHelper: BotGeneratorHelper, botHelper: BotHelper, weightedRandomHelper: WeightedRandomHelper, itemHelper: ItemHelper, localisationService: LocalisationService, botEquipmentModPoolService: BotEquipmentModPoolService, botEquipmentModGenerator: BotEquipmentModGenerator, configServer: ConfigServer);
     /**
      * Add equipment/weapons/loot to bot
      * @param sessionId Session id
-     * @param botJsonTemplate bot/x.json data from db
+     * @param botJsonTemplate Base json db file for the bot having its loot generated
      * @param botRole Role bot has (assault/pmcBot)
      * @param isPmc Is bot being converted into a pmc
      * @param botLevel Level of bot being generated
@@ -49,26 +51,31 @@ export declare class BotInventoryGenerator {
     /**
      * Add equipment to a bot
      * @param templateInventory bot/x.json data from db
-     * @param equipmentChances Chances items will be added to bot
+     * @param wornItemChances Chances items will be added to bot
      * @param botRole Role bot has (assault/pmcBot)
      * @param botInventory Inventory to add equipment to
      * @param botLevel Level of bot
      */
-    protected generateAndAddEquipmentToBot(templateInventory: Inventory, equipmentChances: Chances, botRole: string, botInventory: PmcInventory, botLevel: number): void;
+    protected generateAndAddEquipmentToBot(templateInventory: Inventory, wornItemChances: Chances, botRole: string, botInventory: PmcInventory, botLevel: number): void;
+    /**
+     * Remove non-armored rigs from parameter data
+     * @param templateInventory
+     */
+    protected filterRigsToThoseWithProtection(templateInventory: Inventory): void;
+    /**
+     * Remove armored rigs from parameter data
+     * @param templateInventory
+     */
+    protected filterRigsToThoseWithoutProtection(templateInventory: Inventory): void;
     /**
      * Add a piece of equipment with mods to inventory from the provided pools
-     * @param equipmentSlot Slot to select an item for
-     * @param equipmentPool Possible items to choose from
-     * @param modPool Possible mods to apply to item chosen
-     * @param spawnChances Chances items will be chosen to be added
-     * @param botRole Role of bot e.g. assault
-     * @param inventory Inventory to add item into
-     * @param randomisationDetails settings from bot.json to adjust how item is generated
+     * @param settings Values to adjust how item is chosen and added to bot
+     * @returns true when item added
      */
-    protected generateEquipment(equipmentSlot: string, equipmentPool: Record<string, number>, modPool: Mods, spawnChances: Chances, botRole: string, inventory: PmcInventory, randomisationDetails: RandomisationDetails): void;
+    protected generateEquipment(settings: IGenerateEquipmentProperties): boolean;
     /**
      * Get all possible mods for item and filter down based on equipment blacklist from bot.json config
-     * @param itemTpl Item mod pool is being retreived and filtered
+     * @param itemTpl Item mod pool is being retrieved and filtered
      * @param equipmentBlacklist blacklist to filter mod pool with
      * @returns Filtered pool of mods
      */
@@ -103,10 +110,27 @@ export declare class BotInventoryGenerator {
      * @param equipmentChances Chances bot can have equipment equipped
      * @param botRole assault/pmcBot/bossTagilla etc
      * @param isPmc Is the bot being generated as a pmc
-     * @param itemGenerationLimitsMinMax
+     * @param itemGenerationWeights
      */
     protected addWeaponAndMagazinesToInventory(sessionId: string, weaponSlot: {
         slot: EquipmentSlots;
         shouldSpawn: boolean;
-    }, templateInventory: Inventory, botInventory: PmcInventory, equipmentChances: Chances, botRole: string, isPmc: boolean, itemGenerationLimitsMinMax: Generation, botLevel: number): void;
+    }, templateInventory: Inventory, botInventory: PmcInventory, equipmentChances: Chances, botRole: string, isPmc: boolean, itemGenerationWeights: Generation, botLevel: number): void;
+}
+export interface IGenerateEquipmentProperties {
+    /** Root Slot being generated */
+    rootEquipmentSlot: string;
+    /** Equipment pool for root slot being generated */
+    rootEquipmentPool: Record<string, number>;
+    modPool: Mods;
+    /** Dictionary of mod items and their chance to spawn for this bot type */
+    spawnChances: Chances;
+    /** Role being generated for */
+    botRole: string;
+    /** Level of bot being generated */
+    botLevel: number;
+    inventory: PmcInventory;
+    botEquipmentConfig: EquipmentFilters;
+    /** Settings from bot.json to adjust how item is generated */
+    randomisationDetails: RandomisationDetails;
 }

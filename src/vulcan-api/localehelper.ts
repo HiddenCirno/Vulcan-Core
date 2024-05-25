@@ -1,6 +1,6 @@
 import { inject, injectable, container, DependencyContainer, Lifecycle } from "tsyringe";
 import { ILogger } from "@spt-aki/models/spt/utils/ILogger";
-import { DatabaseServer } from "@spt-aki/servers/DatabaseServer";=
+import { DatabaseServer } from "@spt-aki/servers/DatabaseServer";
 import { ITemplateItem } from "@spt-aki/models/eft/common/tables/ITemplateItem";
 import { ItemLocale, QuestLocale, TraderLocale } from "./localeclass";
 import { VFS } from "@spt-aki/utils/VFS"

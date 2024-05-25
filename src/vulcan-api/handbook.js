@@ -18,6 +18,8 @@ const tsyringe_1 = require("C:/snapshot/project/node_modules/tsyringe");
 const ILogger_1 = require("C:/snapshot/project/obj/models/spt/utils/ILogger");
 const DatabaseServer_1 = require("C:/snapshot/project/obj/servers/DatabaseServer");
 let VulcanHandBookHelper = class VulcanHandBookHelper {
+    logger;
+    databaseServer;
     constructor(logger, databaseServer) {
         this.logger = logger;
         this.databaseServer = databaseServer;
@@ -77,10 +79,11 @@ let VulcanHandBookHelper = class VulcanHandBookHelper {
         return handbook.Items.find(item => item.Id == itemid);
     }
 };
-VulcanHandBookHelper = __decorate([
+exports.VulcanHandBookHelper = VulcanHandBookHelper;
+exports.VulcanHandBookHelper = VulcanHandBookHelper = __decorate([
     (0, tsyringe_1.injectable)(),
     __param(0, (0, tsyringe_1.inject)("WinstonLogger")),
     __param(1, (0, tsyringe_1.inject)("DatabaseServer")),
     __metadata("design:paramtypes", [typeof (_a = typeof ILogger_1.ILogger !== "undefined" && ILogger_1.ILogger) === "function" ? _a : Object, typeof (_b = typeof DatabaseServer_1.DatabaseServer !== "undefined" && DatabaseServer_1.DatabaseServer) === "function" ? _b : Object])
 ], VulcanHandBookHelper);
-exports.VulcanHandBookHelper = VulcanHandBookHelper;
+//# sourceMappingURL=handbook.js.map

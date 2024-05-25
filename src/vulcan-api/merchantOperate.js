@@ -41,6 +41,9 @@ class traderOperateJsonOdj {
 }
 exports.traderOperateJsonOdj = traderOperateJsonOdj;
 class TraderAppMerchandise {
+    items;
+    barter_scheme;
+    loyal_level_items;
     //itemID: 你要卖的东西的ID  ,count:交换品要的个数   ,shoppingGoods:交换品   ,loyal_level:解锁物品的商人等级
     constructor(itemID, count = 1, shoppingGoods = "5449016a4bdc2d6f028b456f", loyal_level = 1, parentId = "hideout", slotId = "hideout", upd = { "StackObjectsCount": 20000 }) {
         const item = {
@@ -83,3 +86,4 @@ class TraderAppMerchandise {
     }
 }
 exports.TraderAppMerchandise = TraderAppMerchandise;
+//# sourceMappingURL=merchantOperate.js.map

@@ -24,6 +24,13 @@ const JsonUtil_1 = require("C:/snapshot/project/obj/utils/JsonUtil");
 const ConfigTypes_1 = require("C:/snapshot/project/obj/models/enums/ConfigTypes");
 const ConfigServer_1 = require("C:/snapshot/project/obj/servers/ConfigServer");
 let VulcanTraderHelper = class VulcanTraderHelper {
+    logger;
+    databaseServer;
+    vfs;
+    jsonUtil;
+    miscMethod;
+    imageRouter;
+    configServer;
     constructor(logger, databaseServer, vfs, jsonUtil, miscMethod, imageRouter, configServer) {
         this.logger = logger;
         this.databaseServer = databaseServer;
@@ -63,7 +70,8 @@ let VulcanTraderHelper = class VulcanTraderHelper {
         db.traders[trader.base._id] = trader;
     }
 };
-VulcanTraderHelper = __decorate([
+exports.VulcanTraderHelper = VulcanTraderHelper;
+exports.VulcanTraderHelper = VulcanTraderHelper = __decorate([
     (0, tsyringe_1.injectable)(),
     __param(0, (0, tsyringe_1.inject)("WinstonLogger")),
     __param(1, (0, tsyringe_1.inject)("DatabaseServer")),
@@ -74,4 +82,4 @@ VulcanTraderHelper = __decorate([
     __param(6, (0, tsyringe_1.inject)("ConfigServer")),
     __metadata("design:paramtypes", [typeof (_a = typeof ILogger_1.ILogger !== "undefined" && ILogger_1.ILogger) === "function" ? _a : Object, typeof (_b = typeof DatabaseServer_1.DatabaseServer !== "undefined" && DatabaseServer_1.DatabaseServer) === "function" ? _b : Object, typeof (_c = typeof VFS_1.VFS !== "undefined" && VFS_1.VFS) === "function" ? _c : Object, typeof (_d = typeof JsonUtil_1.JsonUtil !== "undefined" && JsonUtil_1.JsonUtil) === "function" ? _d : Object, typeof (_e = typeof miscmethod_1.VulcanMiscMethod !== "undefined" && miscmethod_1.VulcanMiscMethod) === "function" ? _e : Object, typeof (_f = typeof ImageRouter_1.ImageRouter !== "undefined" && ImageRouter_1.ImageRouter) === "function" ? _f : Object, typeof (_g = typeof ConfigServer_1.ConfigServer !== "undefined" && ConfigServer_1.ConfigServer) === "function" ? _g : Object])
 ], VulcanTraderHelper);
-exports.VulcanTraderHelper = VulcanTraderHelper;
+//# sourceMappingURL=traderhelper.js.map
