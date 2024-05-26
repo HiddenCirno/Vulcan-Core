@@ -38,19 +38,23 @@ class Mod {
         // the login() function with the one below called 'replacementFunction()
         container.afterResolution("RepeatableQuestRewardGenerator", (_t, result) => {
             // We want to replace the original method logic with something different
-            //result.generateReward = (pmcLevel: number,
-            //    difficulty: number,
-            //    traderId: string,
-            //    repeatableConfig: IRepeatableQuestConfig,
-            //    questConfig: IBaseQuestConfig,) => {
-            //    return this.generateReward(pmcLevel, difficulty, traderId, repeatableConfig, questConfig)
-            //}
+            result.generateReward = (pmcLevel, difficulty, traderId, repeatableConfig, questConfig) => {
+                return this.generateReward(pmcLevel, difficulty, traderId, repeatableConfig, questConfig);
+            };
+            //result.generateRewardCustom = this.generateRewardCustom
             // The modifier Always makes sure this replacement method is ALWAYS replaced
         }, { frequency: "Always" });
         container.afterResolution("RepeatableQuestGenerator", (_t, result) => {
             // We want to replace the original method logic with something different
             result.generateRepeatableQuest = (pmcLevel, pmcTraderInfo, questTypePool, repeatableConfig) => {
                 return this.generateRepeatableQuest(pmcLevel, pmcTraderInfo, questTypePool, repeatableConfig);
+            };
+            // The modifier Always makes sure this replacement method is ALWAYS replaced
+        }, { frequency: "Always" });
+        container.afterResolution("InventoryController", (_t, result) => {
+            // We want to replace the original method logic with something different
+            result.openRandomLootContainer = (pmcData, body, sessionID, output) => {
+                return this.openRandomLootContainer(pmcData, body, sessionID, output);
             };
             // The modifier Always makes sure this replacement method is ALWAYS replaced
         }, { frequency: "Always" });
@@ -88,8 +92,8 @@ class Mod {
         //似乎不行....
         //确实不行。
         if (questConfig.rewards && questConfig.rewards.length > 0) {
+            common.Log("自定义奖励加载成功");
             common.initQuestRewardDaily(questConfig.rewards, rewards);
-            //common.Log("自定义奖励加载成功")
         }
         else {
             const levelsConfig = repeatableConfig.rewardScaling.levels;
@@ -211,9 +215,9 @@ class Mod {
                 logger.debug(`  Adding ${skillPointReward} skill points to ${targetSkill}`);
             }
         }
+        return rewards;
         //common.Log("方法重写成功")
         //common.Log(JSON.stringify(questConfig, null, 4))
-        return rewards;
     }
     generateRepeatableQuest(pmcLevel, pmcTraderInfo, questTypePool, repeatableConfig) {
         const logger = Mod.container.resolve("WinstonLogger");
@@ -244,26 +248,14 @@ class Mod {
             traders = traders.filter((x) => pmcTraderInfo[x].unlocked);
             const traderId = randomUtil.drawRandomFromList(traders)[0];
             switch (questType) {
-                case "Elimination": {
-                    const quest = repeatableQuestGenerator.generateEliminationQuest(pmcLevel, traderId, questTypePool, repeatableConfig);
-                    quest.rewards = this.generateReward(pmcLevel, 1, traderId, repeatableConfig, repeatableConfig.questConfig.Elimination);
-                    return quest;
-                }
-                case "Completion": {
-                    const quest = repeatableQuestGenerator.generateEliminationQuest(pmcLevel, traderId, questTypePool, repeatableConfig);
-                    quest.rewards = this.generateReward(pmcLevel, 1, traderId, repeatableConfig, repeatableConfig.questConfig.Completion);
-                    return quest;
-                }
-                case "Exploration": {
-                    const quest = repeatableQuestGenerator.generateEliminationQuest(pmcLevel, traderId, questTypePool, repeatableConfig);
-                    quest.rewards = this.generateReward(pmcLevel, 1, traderId, repeatableConfig, repeatableConfig.questConfig.Exploration);
-                    return quest;
-                }
-                case "Pickup": {
-                    const quest = repeatableQuestGenerator.generateEliminationQuest(pmcLevel, traderId, questTypePool, repeatableConfig);
-                    quest.rewards = this.generateReward(pmcLevel, 1, traderId, repeatableConfig, repeatableConfig.questConfig.Pickup);
-                    return quest;
-                }
+                case "Elimination":
+                    return repeatableQuestGenerator.generateEliminationQuest(pmcLevel, traderId, questTypePool, repeatableConfig);
+                case "Completion":
+                    return repeatableQuestGenerator.generateCompletionQuest(pmcLevel, traderId, repeatableConfig);
+                case "Exploration":
+                    return repeatableQuestGenerator.generateExplorationQuest(pmcLevel, traderId, questTypePool, repeatableConfig);
+                case "Pickup":
+                    return repeatableQuestGenerator.generatePickupQuest(pmcLevel, traderId, questTypePool, repeatableConfig);
                 default:
                     throw new Error(`Unknown mission type ${questType}. Should never be here!`);
             }
@@ -323,38 +315,78 @@ class Mod {
         return questClone;
     }
     openRandomLootContainer(pmcData, body, sessionID, output) {
+        const logger = Mod.container.resolve("WinstonLogger");
+        const importerUtil = Mod.container.resolve("ImporterUtil");
+        const preAkiModLoader = Mod.container.resolve("PreAkiModLoader");
+        const weightedRandomHelper = Mod.container.resolve("WeightedRandomHelper");
+        const itemFilterService = Mod.container.resolve("ItemFilterService");
+        const randomUtil = Mod.container.resolve("RandomUtil");
+        const presetHelper = Mod.container.resolve("PresetHelper");
+        const itemHelper = Mod.container.resolve("ItemHelper");
+        const localisationService = Mod.container.resolve("LocalisationService");
+        const mathUtil = Mod.container.resolve("MathUtil");
+        const hashUtil = Mod.container.resolve("HashUtil");
+        const jsonUtil = Mod.container.resolve("JsonUtil");
+        const vfs = Mod.container.resolve("VFS");
+        const ModPath = preAkiModLoader.getModPath("[火神之心]VulcanCore");
+        const common = Mod.container.resolve("VulcanCommon");
+        const repeatableQuestRewardGenerator = Mod.container.resolve("RepeatableQuestRewardGenerator");
+        const lootGenerator = Mod.container.resolve("LootGenerator");
+        const inventoryHelper = Mod.container.resolve("InventoryHelper");
         /** Container player opened in their inventory */
         const openedItem = pmcData.Inventory.items.find((item) => item._id === body.item);
-        const containerDetailsDb = this.itemHelper.getItem(openedItem._tpl);
+        const containerDetailsDb = itemHelper.getItem(openedItem._tpl);
         const isSealedWeaponBox = containerDetailsDb[1]._name.includes("event_container_airdrop");
+        const isadvBox = containerDetailsDb[1]._props.isadvGiftBox;
         let foundInRaid = openedItem.upd?.SpawnedInSession;
         const rewards = [];
-        if (isSealedWeaponBox) {
-            const containerSettings = this.inventoryHelper.getInventoryConfig().sealedAirdropContainer;
-            rewards.push(...this.lootGenerator.getSealedWeaponCaseLoot(containerSettings));
-            if (containerSettings.foundInRaid) {
-                foundInRaid = containerSettings.foundInRaid;
-            }
+        //common.Log(JSON.stringify(containerDetailsDb[1], null, 4))
+        if (isadvBox) {
+            const BoxData = containerDetailsDb[1]._props.advBoxData;
+            foundInRaid = true;
+            var CustomPreset = BoxData.giftdata.itempool.rare.chanceup[0].item;
+            var Preset = common.convertCustomPreset(CustomPreset, 0);
+            rewards.push(Preset);
+            common.Log(JSON.stringify(rewards, null, 4));
         }
         else {
-            const rewardContainerDetails = this.inventoryHelper.getRandomLootContainerRewardDetails(openedItem._tpl);
-            rewards.push(...this.lootGenerator.getRandomLootContainerLoot(rewardContainerDetails));
-            if (rewardContainerDetails.foundInRaid) {
-                foundInRaid = rewardContainerDetails.foundInRaid;
+            if (isSealedWeaponBox) {
+                const containerSettings = inventoryHelper.getInventoryConfig().sealedAirdropContainer;
+                rewards.push(...lootGenerator.getSealedWeaponCaseLoot(containerSettings));
+                if (containerSettings.foundInRaid) {
+                    foundInRaid = containerSettings.foundInRaid;
+                }
+            }
+            else {
+                const rewardContainerDetails = inventoryHelper.getRandomLootContainerRewardDetails(openedItem._tpl);
+                rewards.push(...lootGenerator.getRandomLootContainerLoot(rewardContainerDetails));
+                if (rewardContainerDetails.foundInRaid) {
+                    foundInRaid = rewardContainerDetails.foundInRaid;
+                }
             }
         }
+        var exportarr = [];
+        var test = {
+            pmcData: pmcData,
+            body: body,
+            openedItem: openedItem,
+            containerDetailsDb: containerDetailsDb,
+            isSealedWeaponBox: isSealedWeaponBox,
+            rewards: rewards
+        };
+        //vfs.writeFile(`${ModPath}export.json`, JSON.stringify(test, null, 4))
         const addItemsRequest = {
             itemsWithModsToAdd: rewards,
             foundInRaid: foundInRaid,
             callback: null,
             useSortingTable: true,
         };
-        this.inventoryHelper.addItemsToStash(sessionID, addItemsRequest, pmcData, output);
+        inventoryHelper.addItemsToStash(sessionID, addItemsRequest, pmcData, output);
         if (output.warnings.length > 0) {
             return;
         }
         // Find and delete opened container item from player inventory
-        this.inventoryHelper.removeItem(pmcData, body.item, sessionID, output);
+        inventoryHelper.removeItem(pmcData, body.item, sessionID, output);
     }
 }
 module.exports = { mod: new Mod() };

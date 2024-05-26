@@ -23,6 +23,9 @@ import { VFS } from "@spt-aki/utils/VFS"
 import { NotificationSendHelper } from "@spt-aki/helpers/NotificationSendHelper";
 import { NotifierHelper } from "@spt-aki/helpers/NotifierHelper";
 import { QuestHelper } from "@spt-aki/helpers/QuestHelper";
+import { InventoryHelper } from "@spt-aki/helpers/InventoryHelper";
+import { ItemHelper } from "@spt-aki/helpers/ItemHelper";
+import { Item } from "@spt-aki/models/eft/common/tables/IItem";
 import { ImporterUtil } from "@spt-aki/utils/ImporterUtil"
 import { BundleLoader } from "@spt-aki/loaders/BundleLoader";
 import { VulcanConsole } from "./vulcan-api/console";
@@ -38,8 +41,9 @@ import { IQuestTypePool } from "@spt-aki/models/spt/repeatable/IQuestTypePool";
 import { VulcanDatabaseHelper } from "./vulcan-api/dbhelper";
 import { VulcanCommon } from "./vulcan-api/Common";
 import { repeatableQuestGenerator } from "./vulcan-api/questGenerator"
-import { VulcanMap } from "./vulcan-api/Map";
+import { VulcanMap } from "./vulcan-api/Map"; 
 import { RepeatableQuestRewardGenerator } from "@spt-aki/generators/RepeatableQuestRewardGenerator";
+import { LootGenerator } from "@spt-aki/generators/LootGenerator";
 import { RepeatableQuestGenerator } from "@spt-aki/generators/RepeatableQuestGenerator";
 import { IQuestReward, IQuestRewards } from "@spt-aki/models/eft/common/tables/IQuest";
 import { IBaseQuestConfig, IQuestConfig, IRepeatableQuestConfig } from "@spt-aki/models/spt/config/IQuestConfig";
@@ -47,12 +51,13 @@ import { IPreset } from "@spt-aki/models/eft/common/IGlobals";
 import { BaseClasses } from "@spt-aki/models/enums/BaseClasses";
 import { QuestRewardType } from "@spt-aki/models/enums/QuestRewardType";
 import { ExhaustableArray } from "@spt-aki/models/spt/server/ExhaustableArray"
-import { IRepeatableQuest } from "@spt-aki/models/eft/common/tables/IRepeatableQuests"; 
+import { IRepeatableQuest } from "@spt-aki/models/eft/common/tables/IRepeatableQuests";
 import { TraderInfo } from "@spt-aki/models/eft/common/tables/IBotBase";
 import { InventoryController } from "@spt-aki/controllers/InventoryController";
 import { IPmcData } from "@spt-aki/models/eft/common/IPmcData";
 import { IOpenRandomLootContainerRequestData } from "@spt-aki/models/eft/inventory/IOpenRandomLootContainerRequestData";
 import { IItemEventRouterResponse } from "@spt-aki/models/eft/itemEvent/IItemEventRouterResponse";
+import { IAddItemsDirectRequest } from "@spt-aki/models/eft/inventory/IAddItemsDirectRequest";
 //const addTrader = new TraderOperateJsonOdj
 //
 class Mod implements IPreAkiLoadMod {
@@ -75,13 +80,14 @@ class Mod implements IPreAkiLoadMod {
         // the login() function with the one below called 'replacementFunction()
         container.afterResolution("RepeatableQuestRewardGenerator", (_t, result: RepeatableQuestRewardGenerator) => {
             // We want to replace the original method logic with something different
-            //result.generateReward = (pmcLevel: number,
-            //    difficulty: number,
-            //    traderId: string,
-            //    repeatableConfig: IRepeatableQuestConfig,
-            //    questConfig: IBaseQuestConfig,) => {
-            //    return this.generateReward(pmcLevel, difficulty, traderId, repeatableConfig, questConfig)
-            //}
+            result.generateReward = (pmcLevel: number,
+                difficulty: number,
+                traderId: string,
+                repeatableConfig: IRepeatableQuestConfig,
+                questConfig: IBaseQuestConfig,) => {
+                return this.generateReward(pmcLevel, difficulty, traderId, repeatableConfig, questConfig)
+            }
+            //result.generateRewardCustom = this.generateRewardCustom
             // The modifier Always makes sure this replacement method is ALWAYS replaced
         }, { frequency: "Always" });
         container.afterResolution("RepeatableQuestGenerator", (_t, result: RepeatableQuestGenerator) => {
@@ -92,6 +98,17 @@ class Mod implements IPreAkiLoadMod {
                 questTypePool: IQuestTypePool,
                 repeatableConfig: IRepeatableQuestConfig,) => {
                 return this.generateRepeatableQuest(pmcLevel, pmcTraderInfo, questTypePool, repeatableConfig)
+            }
+            // The modifier Always makes sure this replacement method is ALWAYS replaced
+        }, { frequency: "Always" });
+        container.afterResolution("InventoryController", (_t, result: InventoryController) => {
+            // We want to replace the original method logic with something different
+            result.openRandomLootContainer = (
+                pmcData: IPmcData,
+                body: IOpenRandomLootContainerRequestData,
+                sessionID: string,
+                output: IItemEventRouterResponse,) => {
+                return this.openRandomLootContainer(pmcData, body, sessionID, output)
             }
             // The modifier Always makes sure this replacement method is ALWAYS replaced
         }, { frequency: "Always" });
@@ -144,12 +161,171 @@ class Mod implements IPreAkiLoadMod {
         //似乎不行....
         //确实不行。
         if (questConfig.rewards && questConfig.rewards.length > 0) {
+            common.Log("自定义奖励加载成功")
             common.initQuestRewardDaily(questConfig.rewards, rewards)
-            //common.Log("自定义奖励加载成功")
         }
         else {
-            return repeatableQuestRewardGenerator.generateReward( pmcLevel, difficulty, traderId, repeatableConfig, questConfig);
+            const levelsConfig = repeatableConfig.rewardScaling.levels;
+            const roublesConfig = repeatableConfig.rewardScaling.roubles;
+            const xpConfig = repeatableConfig.rewardScaling.experience;
+            const itemsConfig = repeatableConfig.rewardScaling.items;
+            const rewardSpreadConfig = repeatableConfig.rewardScaling.rewardSpread;
+            const skillRewardChanceConfig = repeatableConfig.rewardScaling.skillRewardChance;
+            const skillPointRewardConfig = repeatableConfig.rewardScaling.skillPointReward;
+            const reputationConfig = repeatableConfig.rewardScaling.reputation;
+            const effectiveDifficulty = Number.isNaN(difficulty) ? 1 : difficulty;
+            if (Number.isNaN(difficulty)) {
+                logger.warning(localisationService.getText("repeatable-difficulty_was_nan"));
+            }
+
+            // rewards are generated based on pmcLevel, difficulty and a random spread
+            const rewardXP = Math.floor(
+                effectiveDifficulty * mathUtil.interp1(pmcLevel, levelsConfig, xpConfig)
+                * randomUtil.getFloat(1 - rewardSpreadConfig, 1 + rewardSpreadConfig),
+            );
+            const rewardRoubles = Math.floor(
+                effectiveDifficulty * mathUtil.interp1(pmcLevel, levelsConfig, roublesConfig)
+                * randomUtil.getFloat(1 - rewardSpreadConfig, 1 + rewardSpreadConfig),
+            );
+            const rewardNumItems = randomUtil.randInt(
+                1,
+                Math.round(mathUtil.interp1(pmcLevel, levelsConfig, itemsConfig)) + 1,
+            );
+            const rewardReputation =
+                Math.round(
+                    100 * effectiveDifficulty * mathUtil.interp1(pmcLevel, levelsConfig, reputationConfig)
+                    * randomUtil.getFloat(1 - rewardSpreadConfig, 1 + rewardSpreadConfig),
+                ) / 100;
+            const skillRewardChance = mathUtil.interp1(pmcLevel, levelsConfig, skillRewardChanceConfig);
+            const skillPointReward = mathUtil.interp1(pmcLevel, levelsConfig, skillPointRewardConfig);
+
+            // Possible improvement -> draw trader-specific items e.g. with const itemHelper.isOfBaseclass(val._id, ItemHelper.BASECLASS.FoodDrink)
+            let roublesBudget = rewardRoubles;
+            let rewardItemPool = repeatableQuestRewardGenerator.chooseRewardItemsWithinBudget(repeatableConfig, roublesBudget, traderId);
+            logger.debug(
+                `Generating daily quest for ${traderId} with budget ${roublesBudget} for ${rewardNumItems} items`,
+            );
+
+            let rewardIndex = 0;
+            // Add xp reward
+            if (rewardXP > 0) {
+                rewards.Success.push({ value: rewardXP, type: QuestRewardType.EXPERIENCE, index: rewardIndex });
+                rewardIndex++;
+            }
+
+            // Add money reward
+            repeatableQuestRewardGenerator.addMoneyReward(traderId, rewards, rewardRoubles, rewardIndex);
+            rewardIndex++;
+
+            const traderWhitelistDetails = repeatableConfig.traderWhitelist.find((x) => x.traderId === traderId);
+            if (
+                traderWhitelistDetails.rewardCanBeWeapon
+                && randomUtil.getChance100(traderWhitelistDetails.weaponRewardChancePercent)
+            ) {
+                // Add a random default preset weapon as reward
+                const defaultPresetPool = new ExhaustableArray(
+                    Object.values(presetHelper.getDefaultWeaponPresets()),
+                    randomUtil,
+                    jsonUtil,
+                );
+                let chosenPreset: IPreset;
+                while (defaultPresetPool.hasValues()) {
+                    const randomPreset = defaultPresetPool.getRandomValue();
+                    const tpls = randomPreset._items.map((item) => item._tpl);
+                    const presetPrice = itemHelper.getItemAndChildrenPrice(tpls);
+                    if (presetPrice <= roublesBudget) {
+                        logger.debug(`  Added weapon ${tpls[0]} with price ${presetPrice}`);
+                        roublesBudget -= presetPrice;
+                        chosenPreset = jsonUtil.clone(randomPreset);
+                        break;
+                    }
+                }
+
+                if (chosenPreset) {
+                    // use _encyclopedia as its always the base items _tpl, items[0] isn't guaranteed to be base item
+                    rewards.Success.push(
+                        repeatableQuestRewardGenerator.generateRewardItem(chosenPreset._encyclopedia, 1, rewardIndex, chosenPreset._items),
+                    );
+                    rewardIndex++;
+                }
+            }
+
+            if (rewardItemPool.length > 0) {
+                for (let i = 0; i < rewardNumItems; i++) {
+                    let rewardItemStackCount = 1;
+                    const itemSelected = rewardItemPool[randomUtil.randInt(rewardItemPool.length)];
+
+                    if (itemHelper.isOfBaseclass(itemSelected._id, BaseClasses.AMMO)) {
+                        // Don't reward ammo that stacks to less than what's defined in config
+                        if (itemSelected._props.StackMaxSize < repeatableConfig.rewardAmmoStackMinSize) {
+                            i--;
+                            continue;
+                        }
+
+                        // Choose smallest value between budget fitting size and stack max
+                        rewardItemStackCount = repeatableQuestRewardGenerator.calculateAmmoStackSizeThatFitsBudget(
+                            itemSelected,
+                            roublesBudget,
+                            rewardNumItems,
+                        );
+                    }
+
+                    // 25% chance to double, triple quadruple reward stack (Only occurs when item is stackable and not weapon, armor or ammo)
+                    if (repeatableQuestRewardGenerator.canIncreaseRewardItemStackSize(itemSelected, 70000)) {
+                        rewardItemStackCount = repeatableQuestRewardGenerator.getRandomisedRewardItemStackSizeByPrice(itemSelected);
+                    }
+
+                    rewards.Success.push(repeatableQuestRewardGenerator.generateRewardItem(itemSelected._id, rewardItemStackCount, rewardIndex));
+                    rewardIndex++;
+
+                    const itemCost = presetHelper.getDefaultPresetOrItemPrice(itemSelected._id);
+                    roublesBudget -= rewardItemStackCount * itemCost;
+                    logger.debug(`  Added item ${itemSelected._id} with price ${rewardItemStackCount * itemCost}`);
+
+                    // If we still have budget narrow down possible items
+                    if (roublesBudget > 0) {
+                        // Filter possible reward items to only items with a price below the remaining budget
+                        rewardItemPool = repeatableQuestRewardGenerator.filterRewardPoolWithinBudget(rewardItemPool, roublesBudget, 0);
+                        if (rewardItemPool.length === 0) {
+                            logger.debug(`  Reward pool empty with ${roublesBudget} remaining`);
+                            break; // No reward items left, exit
+                        }
+                    }
+                    else {
+                        break;
+                    }
+                }
+            }
+
+            // Add rep reward to rewards array
+            if (rewardReputation > 0) {
+                const reward: IQuestReward = {
+                    target: traderId,
+                    value: rewardReputation,
+                    type: QuestRewardType.TRADER_STANDING,
+                    index: rewardIndex,
+                };
+                rewards.Success.push(reward);
+                rewardIndex++;
+
+                logger.debug(`  Adding ${rewardReputation} trader reputation reward`);
+            }
+
+            // Chance of adding skill reward
+            if (randomUtil.getChance100(skillRewardChance * 100)) {
+                const targetSkill = randomUtil.getArrayValue(questConfig.possibleSkillRewards);
+                const reward: IQuestReward = {
+                    target: targetSkill,
+                    value: skillPointReward,
+                    type: QuestRewardType.SKILL,
+                    index: rewardIndex,
+                };
+                rewards.Success.push(reward);
+
+                logger.debug(`  Adding ${skillPointReward} skill points to ${targetSkill}`);
+            }
         }
+        return rewards
         //common.Log("方法重写成功")
         //common.Log(JSON.stringify(questConfig, null, 4))
     }
@@ -190,21 +366,18 @@ class Mod implements IPreAkiLoadMod {
             // filter out locked traders
             traders = traders.filter((x) => pmcTraderInfo[x].unlocked);
             const traderId = randomUtil.drawRandomFromList(traders)[0];
-            var Quest;
-
-             switch (questType)
-        {
-            case "Elimination":
-                return repeatableQuestGenerator.generateEliminationQuest(pmcLevel, traderId, questTypePool, repeatableConfig);
-            case "Completion":
-                return repeatableQuestGenerator.generateCompletionQuest(pmcLevel, traderId, repeatableConfig);
-            case "Exploration":
-                return repeatableQuestGenerator.generateExplorationQuest(pmcLevel, traderId, questTypePool, repeatableConfig);
-            case "Pickup":
-                return repeatableQuestGenerator.generatePickupQuest(pmcLevel, traderId, questTypePool, repeatableConfig);
-            default:
-                throw new Error(`Unknown mission type ${questType}. Should never be here!`);
-        }
+            switch (questType) {
+                case "Elimination":
+                    return repeatableQuestGenerator.generateEliminationQuest(pmcLevel, traderId, questTypePool, repeatableConfig);
+                case "Completion":
+                    return repeatableQuestGenerator.generateCompletionQuest(pmcLevel, traderId, repeatableConfig);
+                case "Exploration":
+                    return repeatableQuestGenerator.generateExplorationQuest(pmcLevel, traderId, questTypePool, repeatableConfig);
+                case "Pickup":
+                    return repeatableQuestGenerator.generatePickupQuest(pmcLevel, traderId, questTypePool, repeatableConfig);
+                default:
+                    throw new Error(`Unknown mission type ${questType}. Should never be here!`);
+            }
         }
 
     }
@@ -314,50 +487,85 @@ class Mod implements IPreAkiLoadMod {
         body: IOpenRandomLootContainerRequestData,
         sessionID: string,
         output: IItemEventRouterResponse,
-    ): void
-    {
+    ): void {
+        const logger = Mod.container.resolve("WinstonLogger");
+        const importerUtil = Mod.container.resolve("ImporterUtil");
+        const preAkiModLoader = Mod.container.resolve("PreAkiModLoader");
+        const weightedRandomHelper = Mod.container.resolve("WeightedRandomHelper");
+        const itemFilterService = Mod.container.resolve("ItemFilterService");
+        const randomUtil = Mod.container.resolve("RandomUtil");
+        const presetHelper = Mod.container.resolve("PresetHelper");
+        const itemHelper = Mod.container.resolve("ItemHelper");
+        const localisationService = Mod.container.resolve("LocalisationService");
+        const mathUtil = Mod.container.resolve("MathUtil");
+        const hashUtil = Mod.container.resolve("HashUtil");
+        const jsonUtil = Mod.container.resolve("JsonUtil");
+        const vfs = Mod.container.resolve("VFS")
+        const ModPath = preAkiModLoader.getModPath("[火神之心]VulcanCore")
+        const common = Mod.container.resolve("VulcanCommon")
+        const repeatableQuestRewardGenerator = Mod.container.resolve("RepeatableQuestRewardGenerator")
+        const lootGenerator = Mod.container.resolve("LootGenerator")
+        const inventoryHelper = Mod.container.resolve("InventoryHelper")
         /** Container player opened in their inventory */
         const openedItem = pmcData.Inventory.items.find((item) => item._id === body.item);
-        const containerDetailsDb = this.itemHelper.getItem(openedItem._tpl);
+        const containerDetailsDb = itemHelper.getItem(openedItem._tpl);
         const isSealedWeaponBox = containerDetailsDb[1]._name.includes("event_container_airdrop");
+
+        const isadvBox = containerDetailsDb[1]._props.isadvGiftBox
 
         let foundInRaid = openedItem.upd?.SpawnedInSession;
         const rewards: Item[][] = [];
-        if (isSealedWeaponBox)
-        {
-            const containerSettings = this.inventoryHelper.getInventoryConfig().sealedAirdropContainer;
-            rewards.push(...this.lootGenerator.getSealedWeaponCaseLoot(containerSettings));
-
-            if (containerSettings.foundInRaid)
-            {
-                foundInRaid = containerSettings.foundInRaid;
+        //common.Log(JSON.stringify(containerDetailsDb[1], null, 4))
+        if(isadvBox){
+            const BoxData = containerDetailsDb[1]._props.advBoxData
+            foundInRaid = true
+            var CustomPreset = BoxData.giftdata.itempool.rare.chanceup[0].item
+            var Preset = common.convertCustomPreset(CustomPreset, 0)
+            rewards.push(Preset);
+            common.Log(JSON.stringify(rewards, null, 4))
+        }
+        else{
+            if (isSealedWeaponBox) {
+                const containerSettings = inventoryHelper.getInventoryConfig().sealedAirdropContainer;
+                rewards.push(...lootGenerator.getSealedWeaponCaseLoot(containerSettings));
+    
+                if (containerSettings.foundInRaid) {
+                    foundInRaid = containerSettings.foundInRaid;
+                }
+            }
+            else {
+                const rewardContainerDetails = inventoryHelper.getRandomLootContainerRewardDetails(openedItem._tpl);
+                rewards.push(...lootGenerator.getRandomLootContainerLoot(rewardContainerDetails));
+    
+                if (rewardContainerDetails.foundInRaid) {
+                    foundInRaid = rewardContainerDetails.foundInRaid;
+                }
             }
         }
-        else
-        {
-            const rewardContainerDetails = this.inventoryHelper.getRandomLootContainerRewardDetails(openedItem._tpl);
-            rewards.push(...this.lootGenerator.getRandomLootContainerLoot(rewardContainerDetails));
-
-            if (rewardContainerDetails.foundInRaid)
-            {
-                foundInRaid = rewardContainerDetails.foundInRaid;
-            }
+        var exportarr = [
+        ]
+        var test = {
+            pmcData: pmcData,
+            body: body,
+            openedItem: openedItem,
+            containerDetailsDb: containerDetailsDb,
+            isSealedWeaponBox: isSealedWeaponBox,
+            rewards: rewards
         }
-
+        //vfs.writeFile(`${ModPath}export.json`, JSON.stringify(test, null, 4))
         const addItemsRequest: IAddItemsDirectRequest = {
             itemsWithModsToAdd: rewards,
             foundInRaid: foundInRaid,
             callback: null,
             useSortingTable: true,
         };
-        this.inventoryHelper.addItemsToStash(sessionID, addItemsRequest, pmcData, output);
-        if (output.warnings.length > 0)
-        {
+        inventoryHelper.addItemsToStash(sessionID, addItemsRequest, pmcData, output);
+        if (output.warnings.length > 0) {
             return;
         }
 
         // Find and delete opened container item from player inventory
-        this.inventoryHelper.removeItem(pmcData, body.item, sessionID, output);
+        inventoryHelper.removeItem(pmcData, body.item, sessionID, output);
     }
 }
 module.exports = { mod: new Mod() }

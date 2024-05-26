@@ -3222,6 +3222,32 @@ let VulcanCommon = class VulcanCommon {
             }
         }
     }
+    convertCustomPreset(PresetArr, count) {
+        const result = [];
+        var hashparm = `${count}_${performance.now()}`;
+        result.push({
+            "_id": this.generateHash(`${PresetArr[0]._id}_${hashparm}`),
+            "_tpl": PresetArr[0]._tpl,
+            "upd": {
+                "FireMode": {
+                    "FireMode": "single"
+                },
+                "Repairable": {
+                    "Durability": 100,
+                    "MaxDurability": 100
+                }
+            }
+        });
+        for (var i = 1; i < PresetArr.length; i++) {
+            result.push({
+                "_id": this.generateHash(`${PresetArr[i]._id}_${hashparm}`),
+                "_tpl": PresetArr[i]._tpl,
+                "parentId": this.generateHash(`${PresetArr[i].parentId}_${hashparm}`),
+                "slotId": PresetArr[i].slotId
+            });
+        }
+        return result;
+    }
 };
 exports.VulcanCommon = VulcanCommon;
 exports.VulcanCommon = VulcanCommon = __decorate([
