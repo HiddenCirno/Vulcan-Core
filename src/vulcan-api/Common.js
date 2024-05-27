@@ -3334,6 +3334,32 @@ let VulcanCommon = class VulcanCommon {
             return;
         }
     }
+    getGiftItemByType(itemdata, count) {
+        switch (itemdata.type) {
+            case "CustomPreset": {
+                return this.convertCustomPreset(itemdata.item, count);
+            }
+            case "VanillaPreset": {
+                return this.convertVanillaPreset(itemdata.item, count);
+            }
+            case "Item": {
+                return this.convertItemList(itemdata, count);
+            }
+            case "AmmoBox": {
+                return this.convertAmmoBox(itemdata.itemid, count);
+            }
+            default: {
+                this.Warn(`警告: 无法解析物品类型 物品ID: ${itemdata.itemid}`);
+            }
+        }
+    }
+    drawFromArray(array) {
+        if (array.length === 0) {
+            throw new Error('数组为空');
+        }
+        const randomIndex = Math.floor(Math.random() * array.length);
+        return array[randomIndex];
+    }
 };
 exports.VulcanCommon = VulcanCommon;
 exports.VulcanCommon = VulcanCommon = __decorate([

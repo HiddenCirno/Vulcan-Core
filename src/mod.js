@@ -342,7 +342,9 @@ class Mod {
         const rewards = [];
         //common.Log(JSON.stringify(containerDetailsDb[1], null, 4))
         if (isadvBox) {
+            //只是测试, 抽卡算法还没做
             const BoxData = containerDetailsDb[1]._props.advBoxData;
+            var count = BoxData.count;
             foundInRaid = true;
             var CustomPreset = BoxData.giftdata.itempool.rare.chanceup[0].item;
             var StackItem = BoxData.giftdata.itempool.rare.normal[3];
@@ -351,10 +353,15 @@ class Mod {
             var AmmoBox = BoxData.giftdata.itempool.rare.normal[4].itemid;
             var Preset = common.convertCustomPreset(CustomPreset, 0);
             var Item = common.convertItemList(StackItem);
-            rewards.push(common.convertAmmoBox(AmmoBox, 0));
-            rewards.push(common.convertAmmoBox(AmmoBox, 1));
-            rewards.push(common.convertAmmoBox(AmmoBox, 2));
-            common.Log(JSON.stringify(rewards, null, 4));
+            //测试抽卡算法
+            //感觉要出事
+            //好像没问题嘿
+            //需要把卡池独立出来, 然后用字符串查询引导
+            //先压测一波
+            for (var i = 0; i < count; i++) {
+                rewards.push(this.getadvGiftBoxContainer(BoxData.giftdata, pmcData));
+            }
+            //common.Log(JSON.stringify(rewards, null, 4))
         }
         else {
             if (isSealedWeaponBox) {
@@ -394,6 +401,138 @@ class Mod {
         }
         // Find and delete opened container item from player inventory
         inventoryHelper.removeItem(pmcData, body.item, sessionID, output);
+    }
+    getadvGiftBoxContainer(giftdata, pmcdata) {
+        const logger = Mod.container.resolve("WinstonLogger");
+        const importerUtil = Mod.container.resolve("ImporterUtil");
+        const preAkiModLoader = Mod.container.resolve("PreAkiModLoader");
+        const weightedRandomHelper = Mod.container.resolve("WeightedRandomHelper");
+        const itemFilterService = Mod.container.resolve("ItemFilterService");
+        const randomUtil = Mod.container.resolve("RandomUtil");
+        const presetHelper = Mod.container.resolve("PresetHelper");
+        const itemHelper = Mod.container.resolve("ItemHelper");
+        const localisationService = Mod.container.resolve("LocalisationService");
+        const mathUtil = Mod.container.resolve("MathUtil");
+        const hashUtil = Mod.container.resolve("HashUtil");
+        const jsonUtil = Mod.container.resolve("JsonUtil");
+        const vfs = Mod.container.resolve("VFS");
+        const ModPath = preAkiModLoader.getModPath("[火神之心]VulcanCore");
+        const common = Mod.container.resolve("VulcanCommon");
+        const repeatableQuestRewardGenerator = Mod.container.resolve("RepeatableQuestRewardGenerator");
+        const lootGenerator = Mod.container.resolve("LootGenerator");
+        const inventoryHelper = Mod.container.resolve("InventoryHelper");
+        //卡池关键字初始化
+        if (!pmcdata.GiftData) {
+            pmcdata.GiftData = {};
+        }
+        //定义常量, 方便调用
+        const basedata = giftdata.basereward;
+        const itempool = giftdata.itempool;
+        const sr = basedata.superrare;
+        const srpool = itempool.superrare;
+        const r = basedata.rare;
+        const rpool = itempool.rare;
+        const normal = basedata.normal;
+        const normalpool = itempool.normal;
+        //卡池存档信息初始化
+        if (!pmcdata.GiftData[giftdata.name]) {
+            pmcdata.GiftData[giftdata.name] = {
+                superrare: {
+                    addchance: 0,
+                    count: 0,
+                    upaddchance: 0,
+                    havebasechance: sr.havebasereward
+                },
+                rare: {
+                    addchance: 0,
+                    count: 0,
+                    upaddchance: 0,
+                    havebasechance: r.havebasereward
+                }
+            };
+        }
+        const srdata = pmcdata.GiftData[giftdata.name].superrare;
+        const rdata = pmcdata.GiftData[giftdata.name].rare;
+        //计算本次抽卡概率与up概率
+        var randomchance = Math.floor(Math.random() * 100) / 100;
+        var upchance = Math.floor(Math.random() * 100) / 100;
+        //金
+        common.Access(`金色数据: 累加概率: ${srdata.addchance}, 抽取次数: ${srdata.count}, 保底叠加概率: ${srdata.upaddchance}`);
+        common.Access(`紫色数据: 累加概率: ${rdata.addchance}, 抽取次数: ${rdata.count}, 保底叠加概率: ${rdata.upaddchance}`);
+        if (randomchance < sr.chance + srdata.addchance) {
+            srdata.addchance = 0;
+            srdata.count = 0;
+            rdata.addchance = 0;
+            rdata.count = 0;
+            common.Warn(`你抽到了金色传说! 保底已复位`);
+            common.Access(`金色数据: 累加概率: ${srdata.addchance}, 抽取次数: ${srdata.count}, 保底叠加概率: ${srdata.upaddchance}`);
+            common.Access(`紫色数据: 累加概率: ${rdata.addchance}, 抽取次数: ${rdata.count}, 保底叠加概率: ${rdata.upaddchance}`);
+            //up命中
+            if (upchance < sr.upchance + srdata.upaddchance) {
+                common.Log(`保底没歪`);
+                srdata.upaddchance = 0;
+                return common.getGiftItemByType(common.drawFromArray(srpool.chanceup), srdata.count);
+            }
+            else {
+                common.Log(`哎呀, 保底歪了!`);
+                srdata.upaddchance += sr.upaddchance;
+                return common.getGiftItemByType(common.drawFromArray(srpool.normal), srdata.count);
+            }
+        }
+        //紫
+        else if (randomchance < r.chance + rdata.addchance) {
+            rdata.addchance = 0;
+            rdata.count = 0;
+            if (sr.havebasereward) {
+                //保底计算
+                srdata.count++;
+                if (srdata.count > sr.chancegrowcount) {
+                    srdata.addchance += sr.chancegrowpercount;
+                }
+            }
+            common.Warn(`你抽到了紫色史诗! 保底已复位`);
+            common.Access(`金色数据: 累加概率: ${srdata.addchance}, 抽取次数: ${srdata.count}, 保底叠加概率: ${srdata.upaddchance}`);
+            common.Access(`紫色数据: 累加概率: ${rdata.addchance}, 抽取次数: ${rdata.count}, 保底叠加概率: ${rdata.upaddchance}`);
+            //up命中
+            if (upchance < r.upchance) {
+                common.Log(`保底没歪`);
+                rdata.upaddchance = 0;
+                return common.getGiftItemByType(common.drawFromArray(rpool.chanceup), rdata.count);
+            }
+            else {
+                common.Log(`哎呀, 保底歪了!`);
+                rdata.upaddchance += r.upaddchance;
+                return common.getGiftItemByType(common.drawFromArray(rpool.normal), rdata.count);
+            }
+        }
+        else {
+            if (sr.havebasereward) {
+                //保底计算
+                srdata.count++;
+                if (srdata.count > sr.chancegrowcount) {
+                    srdata.addchance += sr.chancegrowpercount;
+                }
+            }
+            if (r.havebasereward) {
+                //保底计算
+                rdata.count++;
+                if (rdata.count > r.chancegrowcount) {
+                    rdata.addchance += r.chancegrowpercount;
+                }
+            }
+            common.Error(`很遗憾, 你抽到了一坨垃圾:(`);
+            common.Log(`无需灰心, 霉运乃人生常事, 少侠请重新来过`);
+            common.Access(`金色数据: 累加概率: ${srdata.addchance}, 抽取次数: ${srdata.count}, 保底叠加概率: ${srdata.upaddchance}`);
+            common.Access(`紫色数据: 累加概率: ${rdata.addchance}, 抽取次数: ${rdata.count}, 保底叠加概率: ${rdata.upaddchance}`);
+            common.Log("抽卡统计结束");
+            //up命中
+            if (upchance < normal.upchance) {
+                return common.getGiftItemByType(common.drawFromArray(normalpool.chanceup), 0);
+            }
+            else {
+                return common.getGiftItemByType(common.drawFromArray(normalpool.normal), 0);
+            }
+        }
     }
 }
 module.exports = { mod: new Mod() };
