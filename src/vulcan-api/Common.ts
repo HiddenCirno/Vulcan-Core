@@ -2631,6 +2631,9 @@ export class VulcanCommon {
             const QStart = Quest.conditions.AvailableForStart
             const QFinish = Quest.conditions.AvailableForFinish
             const QFail = Quest.conditions.Fail
+            const dailylocalecache = {
+
+            }
             if (Start.Data.length > 0) {
                 for (var i = 0; i < Start.Data.length; i++) {
                     var Data = Start.Data[i]
@@ -2686,11 +2689,11 @@ export class VulcanCommon {
             if (Finish.Data.length > 0) {
                 for (var i = 0; i < Finish.Data.length; i++) {
                     var Data = Finish.Data[i]
+                    var localekey = Data.locale
+                    this.databaseServer.getTables().locales.global.ch[localekey] = Data.locale
+                    this.databaseServer.getTables().locales.global.en[localekey] = Data.enlocale
                     switch (Data.type) {
-                        case "Find": {
-                            var localekey = this.generateHash(`${Data.id}>${performance.now()}`)
-                            this.databaseServer.getTables().locales.global.ch[localekey] = Data.locale
-                            this.databaseServer.getTables().locales.global.en[localekey] = Data.enlocale
+                        case "Find": { 
                             QFinish.push({
                                 "conditionType": "FindItem",
                                 "countInRaid": false,
@@ -2712,10 +2715,7 @@ export class VulcanCommon {
                             })
                         }
                             break;
-                        case "Hand": {
-                            var localekey = this.generateHash(`${Data.id}>${performance.now()}`)
-                            this.databaseServer.getTables().locales.global.ch[localekey] = Data.locale
-                            this.databaseServer.getTables().locales.global.en[localekey] = Data.enlocale
+                        case "Hand": { 
                             QFinish.push({
                                 "conditionType": "HandoverItem",
                                 "dogtagLevel": 0,
@@ -2736,10 +2736,7 @@ export class VulcanCommon {
                             })
                         }
                             break;
-                        case "Kill": {
-                            var localekey = this.generateHash(`${Data.id}>${performance.now()}`)
-                            this.databaseServer.getTables().locales.global.ch[localekey] = Data.locale
-                            this.databaseServer.getTables().locales.global.en[localekey] = Data.enlocale
+                        case "Kill": { 
                             QFinish.push({
                                 "completeInSeconds": 0,
                                 "conditionType": "CounterCreator",
@@ -2828,10 +2825,7 @@ export class VulcanCommon {
                             }
                         }
                             break;
-                        case "Level": {
-                            var localekey = this.generateHash(`${Data.id}>${performance.now()}`)
-                            this.databaseServer.getTables().locales.global.ch[localekey] = Data.locale
-                            this.databaseServer.getTables().locales.global.en[localekey] = Data.enlocale
+                        case "Level": { 
                             QFinish.push({
                                 "conditionType": "Level",
                                 "id": localekey,
@@ -2848,10 +2842,7 @@ export class VulcanCommon {
                             })
                         }
                             break;
-                        case "Visit": {
-                            var localekey = this.generateHash(`${Data.id}>${performance.now()}`)
-                            this.databaseServer.getTables().locales.global.ch[localekey] = Data.locale
-                            this.databaseServer.getTables().locales.global.en[localekey] = Data.enlocale
+                        case "Visit": { 
                             QFinish.push({
                                 "completeInSeconds": 0,
                                 "conditionType": "CounterCreator",
@@ -2880,10 +2871,7 @@ export class VulcanCommon {
                             })
                         }
                             break;
-                        case "Leave": {
-                            var localekey = this.generateHash(`${Data.id}>${performance.now()}`)
-                            this.databaseServer.getTables().locales.global.ch[localekey] = Data.locale
-                            this.databaseServer.getTables().locales.global.en[localekey] = Data.enlocale
+                        case "Leave": { 
                             QFinish.push({
                                 "conditionType": "LeaveItemAtLocation",
                                 "dogtagLevel": 0,
@@ -2906,10 +2894,7 @@ export class VulcanCommon {
                             })
                         }
                             break;
-                        case "Extract": {
-                            var localekey = this.generateHash(`${Data.id}>${performance.now()}`)
-                            this.databaseServer.getTables().locales.global.ch[localekey] = Data.locale
-                            this.databaseServer.getTables().locales.global.en[localekey] = Data.enlocale
+                        case "Extract": { 
                             QFinish.push({
                                 "completeInSeconds": 0,
                                 "conditionType": "CounterCreator",
@@ -2951,10 +2936,7 @@ export class VulcanCommon {
                             }
                         }
                             break;
-                        case "Skill": {
-                            var localekey = this.generateHash(`${Data.id}>${performance.now()}`)
-                            this.databaseServer.getTables().locales.global.ch[localekey] = Data.locale
-                            this.databaseServer.getTables().locales.global.en[localekey] = Data.enlocale
+                        case "Skill": { 
                             QFinish.push({
                                 "compareMethod": ">=",
                                 "conditionType": "Skill",
