@@ -1736,6 +1736,11 @@ let VulcanCommon = class VulcanCommon {
                                 rewardTplPool: ItemObj[i]._props.BoxData.Rewards
                             };
                         }
+                        if (ItemObj[i]._props.isQuestItem == true) {
+                            for (var m = 0; m < ItemObj[i]._props.QuestItemData.location.length; m++) {
+                                this.databaseServer.getTables().locations[ItemObj[i]._props.QuestItemData.location[m]].looseLoot.spawnpointsForced.push(ItemObj[i]._props.QuestItemData);
+                            }
+                        }
                         Local[`${ItemObj[i]._id} Name`] = ItemObj[i]._props.Name;
                         Local[`${ItemObj[i]._id} ShortName`] = ItemObj[i]._props.ShortName;
                         Local[`${ItemObj[i]._id} Description`] = ItemObj[i]._props.Description + "<color=#196884><b>\n此物品由RITC创建。\n编译标准：RITC</b></color>";
@@ -3359,6 +3364,17 @@ let VulcanCommon = class VulcanCommon {
         }
         const randomIndex = Math.floor(Math.random() * array.length);
         return array[randomIndex];
+    }
+    initGiftData(giftdata) {
+        if (!this.databaseServer.getTables().globals.GiftData) {
+            this.databaseServer.getTables().globals.GiftData = {};
+        }
+        for (let i in giftdata) {
+            this.databaseServer.getTables().globals.GiftData[i] = giftdata[i];
+        }
+    }
+    getGiftData(datastring) {
+        return this.databaseServer.getTables().globals.GiftData[datastring];
     }
 };
 exports.VulcanCommon = VulcanCommon;

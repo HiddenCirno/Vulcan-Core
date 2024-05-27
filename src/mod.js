@@ -338,30 +338,30 @@ class Mod {
         const containerDetailsDb = itemHelper.getItem(openedItem._tpl);
         const isSealedWeaponBox = containerDetailsDb[1]._name.includes("event_container_airdrop");
         const isadvBox = containerDetailsDb[1]._props.isadvGiftBox;
+        const isStaticBox = containerDetailsDb[1]._props.isStaticBox;
         let foundInRaid = openedItem.upd?.SpawnedInSession;
         const rewards = [];
         //common.Log(JSON.stringify(containerDetailsDb[1], null, 4))
         if (isadvBox) {
             //只是测试, 抽卡算法还没做
             const BoxData = containerDetailsDb[1]._props.advBoxData;
+            const giftdata = common.getGiftData(BoxData.giftdata);
             var count = BoxData.count;
-            foundInRaid = true;
-            var CustomPreset = BoxData.giftdata.itempool.rare.chanceup[0].item;
-            var StackItem = BoxData.giftdata.itempool.rare.normal[3];
-            var VanillaPreset1 = BoxData.giftdata.itempool.rare.normal[0].item;
-            var VanillaPreset2 = BoxData.giftdata.itempool.rare.normal[1].item;
-            var AmmoBox = BoxData.giftdata.itempool.rare.normal[4].itemid;
-            var Preset = common.convertCustomPreset(CustomPreset, 0);
-            var Item = common.convertItemList(StackItem);
+            foundInRaid = BoxData.forcefindinraid ? true : foundInRaid;
             //测试抽卡算法
             //感觉要出事
             //好像没问题嘿
             //需要把卡池独立出来, 然后用字符串查询引导
             //先压测一波
             for (var i = 0; i < count; i++) {
-                rewards.push(this.getadvGiftBoxContainer(BoxData.giftdata, pmcData));
+                rewards.push(this.getadvGiftBoxContainer(giftdata, pmcData));
             }
             //common.Log(JSON.stringify(rewards, null, 4))
+        }
+        else if (isStaticBox) {
+            const BoxData = containerDetailsDb[1]._props.StaticBoxData;
+            foundInRaid = BoxData.forcefindinraid ? true : foundInRaid;
+            rewards.push(common.getGiftItemByType(BoxData.giftdata));
         }
         else {
             if (isSealedWeaponBox) {
@@ -454,77 +454,78 @@ class Mod {
         const srdata = pmcdata.GiftData[giftdata.name].superrare;
         const rdata = pmcdata.GiftData[giftdata.name].rare;
         //计算本次抽卡概率与up概率
-        var randomchance = Math.floor(Math.random() * 100) / 100;
+        var randomchance = Math.floor(Math.random() * 1000) / 1000;
+        var srrealchance = Math.floor((1 / (sr.chancegrowcount + 1 + ((1 - sr.chance) / sr.chancegrowpercount))) * 1000) / 1000;
         var upchance = Math.floor(Math.random() * 100) / 100;
+        if (sr.havebasereward) {
+            //保底计算
+            srdata.count++;
+            if (srdata.count > sr.chancegrowcount) {
+                srdata.addchance += sr.chancegrowpercount;
+            }
+        }
+        if (r.havebasereward) {
+            //保底计算
+            rdata.count++;
+            if (rdata.count > r.chancegrowcount) {
+                rdata.addchance += r.chancegrowpercount;
+            }
+        }
         //金
-        common.Access(`金色数据: 累加概率: ${srdata.addchance}, 抽取次数: ${srdata.count}, 保底叠加概率: ${srdata.upaddchance}`);
-        common.Access(`紫色数据: 累加概率: ${rdata.addchance}, 抽取次数: ${rdata.count}, 保底叠加概率: ${rdata.upaddchance}`);
-        if (randomchance < sr.chance + srdata.addchance) {
+        //common.Access(`金色数据: 累加概率: ${srdata.addchance}, 抽取次数: ${srdata.count}, 保底叠加概率: ${srdata.upaddchance}`)
+        //common.Access(`紫色数据: 累加概率: ${rdata.addchance}, 抽取次数: ${rdata.count}, 保底叠加概率: ${rdata.upaddchance}`)
+        //common.Log(`金色概率: ${randomchance} / ${srrealchance + srdata.addchance}`)
+        if ((randomchance <= (srrealchance + srdata.addchance)) || (srdata.count == (sr.chancegrowcount + 1 + ((1 - sr.chance) / sr.chancegrowpercount)))) {
+            if (srdata.count == (sr.chancegrowcount + 1 + ((1 - sr.chance) / sr.chancegrowpercount))) {
+                //common.Log("吃满保底啦!")
+            }
+            else {
+                //common.Log("没吃满")
+            }
             srdata.addchance = 0;
             srdata.count = 0;
             rdata.addchance = 0;
             rdata.count = 0;
-            common.Warn(`你抽到了金色传说! 保底已复位`);
-            common.Access(`金色数据: 累加概率: ${srdata.addchance}, 抽取次数: ${srdata.count}, 保底叠加概率: ${srdata.upaddchance}`);
-            common.Access(`紫色数据: 累加概率: ${rdata.addchance}, 抽取次数: ${rdata.count}, 保底叠加概率: ${rdata.upaddchance}`);
+            common.Warn(`你抽到了金色传说!`);
+            //common.Access(`金色数据: 累加概率: ${srdata.addchance}, 抽取次数: ${srdata.count}, 保底叠加概率: ${srdata.upaddchance}`)
+            //common.Access(`紫色数据: 累加概率: ${rdata.addchance}, 抽取次数: ${rdata.count}, 保底叠加概率: ${rdata.upaddchance}`)
             //up命中
-            if (upchance < sr.upchance + srdata.upaddchance) {
-                common.Log(`保底没歪`);
+            if (upchance <= (sr.upchance + srdata.upaddchance)) {
+                //common.Log(`保底没歪`)
                 srdata.upaddchance = 0;
                 return common.getGiftItemByType(common.drawFromArray(srpool.chanceup), srdata.count);
             }
             else {
-                common.Log(`哎呀, 保底歪了!`);
+                //common.Log(`哎呀, 保底歪了!`)
                 srdata.upaddchance += sr.upaddchance;
                 return common.getGiftItemByType(common.drawFromArray(srpool.normal), srdata.count);
             }
         }
         //紫
-        else if (randomchance < r.chance + rdata.addchance) {
+        else if (randomchance <= (r.chance) || (rdata.count == (r.chancegrowcount + 1 + ((1 - r.chance) / r.chancegrowpercount)))) {
             rdata.addchance = 0;
             rdata.count = 0;
-            if (sr.havebasereward) {
-                //保底计算
-                srdata.count++;
-                if (srdata.count > sr.chancegrowcount) {
-                    srdata.addchance += sr.chancegrowpercount;
-                }
-            }
-            common.Warn(`你抽到了紫色史诗! 保底已复位`);
-            common.Access(`金色数据: 累加概率: ${srdata.addchance}, 抽取次数: ${srdata.count}, 保底叠加概率: ${srdata.upaddchance}`);
-            common.Access(`紫色数据: 累加概率: ${rdata.addchance}, 抽取次数: ${rdata.count}, 保底叠加概率: ${rdata.upaddchance}`);
+            //common.Warn(`你抽到了紫色史诗! 保底已复位`)
+            //common.Access(`金色数据: 累加概率: ${srdata.addchance}, 抽取次数: ${srdata.count}, 保底叠加概率: ${srdata.upaddchance}`)
+            //common.Access(`紫色数据: 累加概率: ${rdata.addchance}, 抽取次数: ${rdata.count}, 保底叠加概率: ${rdata.upaddchance}`)
             //up命中
-            if (upchance < r.upchance) {
-                common.Log(`保底没歪`);
+            if (upchance <= (r.upchance + rdata.upaddchance)) {
+                //common.Log(`保底没歪`)
                 rdata.upaddchance = 0;
                 return common.getGiftItemByType(common.drawFromArray(rpool.chanceup), rdata.count);
             }
             else {
-                common.Log(`哎呀, 保底歪了!`);
+                //common.Log(`哎呀, 保底歪了!`)
                 rdata.upaddchance += r.upaddchance;
                 return common.getGiftItemByType(common.drawFromArray(rpool.normal), rdata.count);
             }
         }
         else {
-            if (sr.havebasereward) {
-                //保底计算
-                srdata.count++;
-                if (srdata.count > sr.chancegrowcount) {
-                    srdata.addchance += sr.chancegrowpercount;
-                }
-            }
-            if (r.havebasereward) {
-                //保底计算
-                rdata.count++;
-                if (rdata.count > r.chancegrowcount) {
-                    rdata.addchance += r.chancegrowpercount;
-                }
-            }
-            common.Error(`很遗憾, 你抽到了一坨垃圾:(`);
-            common.Log(`无需灰心, 霉运乃人生常事, 少侠请重新来过`);
-            common.Access(`金色数据: 累加概率: ${srdata.addchance}, 抽取次数: ${srdata.count}, 保底叠加概率: ${srdata.upaddchance}`);
-            common.Access(`紫色数据: 累加概率: ${rdata.addchance}, 抽取次数: ${rdata.count}, 保底叠加概率: ${rdata.upaddchance}`);
-            common.Log("抽卡统计结束");
+            //common.Error(`很遗憾, 你抽到了一坨垃圾:(`)
+            //common.Log(`无需灰心, 霉运乃人生常事, 少侠请重新来过`)
+            //common.Access(`金色数据: 累加概率: ${srdata.addchance}, 抽取次数: ${srdata.count}, 保底叠加概率: ${srdata.upaddchance}`)
+            //common.Access(`紫色数据: 累加概率: ${rdata.addchance}, 抽取次数: ${rdata.count}, 保底叠加概率: ${rdata.upaddchance}`)
+            //common.Log("抽卡统计结束")
             //up命中
             if (upchance < normal.upchance) {
                 return common.getGiftItemByType(common.drawFromArray(normalpool.chanceup), 0);
