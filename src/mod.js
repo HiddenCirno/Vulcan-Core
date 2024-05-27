@@ -238,7 +238,7 @@ class Mod {
         const questType = randomUtil.drawRandomFromList(questTypePool.types)[0];
         if (questType == "RITCCustom") {
             let traders = repeatableConfig.traderid;
-            common.Log("自定义每日任务读取测试");
+            common.Log("自定义每日任务生成成功");
             return this.generateCustomPickupQuest(pmcLevel, traders, questTypePool, repeatableConfig);
         }
         else {
@@ -279,12 +279,12 @@ class Mod {
         const repeatableQuestRewardGenerator = Mod.container.resolve("RepeatableQuestRewardGenerator");
         const repeatableQuestGenerator = Mod.container.resolve("RepeatableQuestGenerator");
         const quest = this.generateRepeatableTemplate("Completion", traderId, repeatableConfig.side, repeatableConfig);
-        common.Log(JSON.stringify(quest, null, 4));
+        //common.Log(JSON.stringify(quest, null, 4))
         quest.conditions.AvailableForFinish = [];
         quest.conditions.AvailableForStart = [];
         quest.conditions.Fail = [];
         common.initQuestCondDaily(pickupConfig.conds, quest);
-        common.Log(JSON.stringify(quest, null, 4));
+        //common.Log(JSON.stringify(quest, null, 4))
         // Add rewards
         quest.rewards = this.generateReward(pmcLevel, 1, traderId, repeatableConfig, pickupConfig);
         return quest;
@@ -345,8 +345,15 @@ class Mod {
             const BoxData = containerDetailsDb[1]._props.advBoxData;
             foundInRaid = true;
             var CustomPreset = BoxData.giftdata.itempool.rare.chanceup[0].item;
+            var StackItem = BoxData.giftdata.itempool.rare.normal[3];
+            var VanillaPreset1 = BoxData.giftdata.itempool.rare.normal[0].item;
+            var VanillaPreset2 = BoxData.giftdata.itempool.rare.normal[1].item;
+            var AmmoBox = BoxData.giftdata.itempool.rare.normal[4].itemid;
             var Preset = common.convertCustomPreset(CustomPreset, 0);
-            rewards.push(Preset);
+            var Item = common.convertItemList(StackItem);
+            rewards.push(common.convertAmmoBox(AmmoBox, 0));
+            rewards.push(common.convertAmmoBox(AmmoBox, 1));
+            rewards.push(common.convertAmmoBox(AmmoBox, 2));
             common.Log(JSON.stringify(rewards, null, 4));
         }
         else {

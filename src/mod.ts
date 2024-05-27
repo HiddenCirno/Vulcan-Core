@@ -355,7 +355,7 @@ class Mod implements IPreAkiLoadMod {
 
         if (questType == "RITCCustom") {
             let traders = repeatableConfig.traderid;
-            common.Log("自定义每日任务读取测试")
+            common.Log("自定义每日任务生成成功")
             return this.generateCustomPickupQuest(pmcLevel, traders, questTypePool, repeatableConfig);
         }
         else {
@@ -407,12 +407,12 @@ class Mod implements IPreAkiLoadMod {
 
         const quest = this.generateRepeatableTemplate("Completion", traderId, repeatableConfig.side, repeatableConfig);
 
-        common.Log(JSON.stringify(quest, null, 4))
+        //common.Log(JSON.stringify(quest, null, 4))
         quest.conditions.AvailableForFinish = []
         quest.conditions.AvailableForStart = []
         quest.conditions.Fail = []
         common.initQuestCondDaily(pickupConfig.conds, quest)
-        common.Log(JSON.stringify(quest, null, 4))
+        //common.Log(JSON.stringify(quest, null, 4))
         // Add rewards
         quest.rewards = this.generateReward(
             pmcLevel,
@@ -517,12 +517,17 @@ class Mod implements IPreAkiLoadMod {
         const rewards: Item[][] = [];
         //common.Log(JSON.stringify(containerDetailsDb[1], null, 4))
         if(isadvBox){
+            //只是测试, 抽卡算法还没做
             const BoxData = containerDetailsDb[1]._props.advBoxData
             foundInRaid = true
             var CustomPreset = BoxData.giftdata.itempool.rare.chanceup[0].item
+            var StackItem = BoxData.giftdata.itempool.rare.normal[3]
+            var VanillaPreset1 = BoxData.giftdata.itempool.rare.normal[0].item
+            var VanillaPreset2 = BoxData.giftdata.itempool.rare.normal[1].item
+            var AmmoBox = BoxData.giftdata.itempool.rare.normal[4].itemid
             var Preset = common.convertCustomPreset(CustomPreset, 0)
-            rewards.push(Preset);
-            common.Log(JSON.stringify(rewards, null, 4))
+            var Item = common.convertItemList(StackItem)
+            //common.Log(JSON.stringify(rewards, null, 4))
         }
         else{
             if (isSealedWeaponBox) {

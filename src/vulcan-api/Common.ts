@@ -3193,6 +3193,93 @@ export class VulcanCommon {
         }
         return result
     }
+    public convertItemList(item, count){
+        return [
+            {
+                    "_id": this.generateHash(`${item.name}_${count}_${performance.now()}`),
+                    "_tpl": item.itemid,
+                    "upd":{
+                        "StackObjectsCount" : item.stackcount
+                    }
+            }
+        ]
+    }
+    public convertVanillaPreset(itemid, count){
+        const result = []
+        var hashparm = `${count}_${performance.now()}`
+        var VanillaPreset = this.databaseServer.getTables().globals.ItemPresets
+        var PresetArr = []
+        for(let p in VanillaPreset){
+            if(VanillaPreset[p]._encyclopedia == itemid){
+                PresetArr = this.deepCopy(VanillaPreset[p]._items)
+            }
+        }
+        if(PresetArr.length>0){
+            result.push({
+                "_id": this.generateHash(`${PresetArr[0]._id}_${hashparm}`),
+                "_tpl": PresetArr[0]._tpl,
+                "upd": {
+                    "FireMode": {
+                        "FireMode": "single"
+                    },
+                    "Repairable": {
+                        "Durability": 100,
+                        "MaxDurability": 100
+                    }
+                }
+            })
+            for(var i = 1; i < PresetArr.length; i++){
+                result.push({
+                    "_id": this.generateHash(`${PresetArr[i]._id}_${hashparm}`),
+                    "_tpl": PresetArr[i]._tpl,
+                    "parentId": this.generateHash(`${PresetArr[i].parentId}_${hashparm}`),
+                    "slotId": PresetArr[i].slotId
+                })
+            }
+        }
+        else{
+            result.push({
+                "_id": this.generateHash(`${itemid}_${count}_${performance.now()}`),
+                "_tpl": itemid
+        })
+        this.Warn(`警告: 未发现有效预设, 生成失败。\n物品: ${itemid} ${this.getItemLocaleData(itemid, "ch")?.Name}`)
+        }
+        return result
+    }
+    public convertAmmoBox(itemid, count){
+        //妈的为什么弹药盒没有预设啊, 好几把烦....
+        //搞完这个是不是就没了
+        //信号棒有必要么
+        //我觉得没有
+        //作为头奖太超模了, 而且没做完任务有信号棒好像也不能进新区
+        //而且不能重编码
+        const result = []
+        const Item = this.getItem(itemid)
+        if(Item){
+            const fatherid = this.generateHash(`${itemid}_${count}_${performance.now()}`)
+            result.push({
+                "_id": fatherid,
+                "_tpl": itemid
+            })
+            result.push({
+                "_id": this.generateHash(`${Item._props.StackSlots[0]._props.filters[0].Filter[0]}_${count}_${performance.now()}`),
+                "_tpl": Item._props.StackSlots[0]._props.filters[0].Filter[0],
+                //敲里吗, 我ID写错了
+                "parentId": fatherid,
+                "slotId": "cartridges",
+                "upd":{
+                    "StackObjectsCount" : Item._props.StackSlots[0]._max_count
+                }
+                //敲里吗有堆叠, 草
+
+            })
+            return result
+        }
+        else{
+            this.Warn(`警告: 物品解析失败。物品ID: ${itemid}`)
+            return
+        }
+    }
 
 
 }
