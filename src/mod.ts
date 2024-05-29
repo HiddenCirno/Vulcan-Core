@@ -325,7 +325,9 @@ class Mod implements IPreAkiLoadMod {
         else if(isStaticBox){
             const BoxData = containerDetailsDb[1]._props.StaticBoxData
             foundInRaid = BoxData.forcefindinraid ? true : foundInRaid 
-            rewards.push(common.getGiftItemByType(BoxData.giftdata))
+            for(var i = 0; i < BoxData.giftdata.length; i++){
+                rewards.push(common.getGiftItemByType(BoxData.giftdata[i]))
+            }
         }
         else {
             if (isSealedWeaponBox) {
