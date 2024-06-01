@@ -519,20 +519,20 @@ class Mod {
         const paymentHelper = Mod.container.resolve("PaymentHelper");
         const paymentService = Mod.container.resolve("PaymentService");
         const handbookHelper = Mod.container.resolve("HandbookHelper");
-        common.Log("覆写测试");
-        vfs.writeFile(`${ModPath}export.json`, JSON.stringify(request, null, 4));
+        //common.Log("覆写测试")
+        //vfs.writeFile(`${ModPath}export.json`, JSON.stringify(request, null, 4))
         const trader = traderHelper.getTrader(request.tid, sessionID);
         const currency = paymentHelper.getCurrency(trader.currency);
         let calcAmount = handbookHelper.fromRUB(handbookHelper.inRUB(amountToSend, currency), currency);
         const currencyMaxStackSize = databaseServer.getTables().templates.items[currency]._props.StackMaxSize;
         let skipSendingMoneyToStash = false;
-        common.Log("覆写测试");
+        //common.Log("覆写测试")
         if (trader.customcurrency) {
             const customcurrency = trader.customcurrency;
             var customcalcAmount = Math.floor(amountToSend / trader.customcurrencyMulti);
             const customamountToSend = Math.floor(amountToSend / trader.customcurrencyMulti);
             const customcurrencyMaxStackSize = databaseServer.getTables().templates.items[customcurrency]._props.StackMaxSize;
-            common.Log("自定义货币");
+            //common.Log("自定义货币")
             for (const item of pmcData.Inventory.items) {
                 // Item is not currency
                 if (item._tpl !== customcurrency) {
