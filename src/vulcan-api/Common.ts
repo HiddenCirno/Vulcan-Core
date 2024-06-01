@@ -2337,7 +2337,6 @@ export class VulcanCommon {
                             }
                             AssortData.loyal_level_items[ID] = RW2.LLR
                             if (RW2.isLock == true) {
-                                TraderData.questassort.success[ID] = QuestID
                                 if (RW2.isWeapon == true) {
                                     var WeaponReward = this.convertWeaponAssortToReward(Item)
                                     Reward.push({
@@ -2446,7 +2445,6 @@ export class VulcanCommon {
                             }
                             AssortData.loyal_level_items[ID] = RW2.LLR
                             if (RW2.isLock == true) {
-                                TraderData.questassort.success[ID] = QuestID
                                 if (RW2.isWeapon == true) {
                                     var WeaponReward = this.convertWeaponAssortToReward(Item)
                                     Reward.push({
@@ -2555,7 +2553,6 @@ export class VulcanCommon {
                             }
                             AssortData.loyal_level_items[ID] = RW2.LLR
                             if (RW2.isLock == true) {
-                                TraderData.questassort.success[ID] = QuestID
                                 if (RW2.isWeapon == true) {
                                     var WeaponReward = this.convertWeaponAssortToReward(Item)
                                     Reward.push({
