@@ -2369,7 +2369,6 @@ let VulcanCommon = class VulcanCommon {
                                     }
                                     AssortData.loyal_level_items[ID] = RW2.LLR;
                                     if (RW2.isLock == true) {
-                                        TraderData.questassort.success[ID] = QuestID;
                                         if (RW2.isWeapon == true) {
                                             var WeaponReward = this.convertWeaponAssortToReward(Item);
                                             Reward.push({
@@ -2484,7 +2483,6 @@ let VulcanCommon = class VulcanCommon {
                                     }
                                     AssortData.loyal_level_items[ID] = RW2.LLR;
                                     if (RW2.isLock == true) {
-                                        TraderData.questassort.success[ID] = QuestID;
                                         if (RW2.isWeapon == true) {
                                             var WeaponReward = this.convertWeaponAssortToReward(Item);
                                             Reward.push({
@@ -2599,7 +2597,6 @@ let VulcanCommon = class VulcanCommon {
                                     }
                                     AssortData.loyal_level_items[ID] = RW2.LLR;
                                     if (RW2.isLock == true) {
-                                        TraderData.questassort.success[ID] = QuestID;
                                         if (RW2.isWeapon == true) {
                                             var WeaponReward = this.convertWeaponAssortToReward(Item);
                                             Reward.push({
@@ -2800,6 +2797,26 @@ let VulcanCommon = class VulcanCommon {
                                 "target": [
                                     Data.itemid
                                 ],
+                                "value": Data.count,
+                                "visibilityConditions": []
+                            });
+                        }
+                        break;
+                    case "HandGroup":
+                        {
+                            QFinish.push({
+                                "conditionType": "HandoverItem",
+                                "dogtagLevel": 0,
+                                "dynamicLocale": false,
+                                "globalQuestCounterId": "",
+                                "id": localekey,
+                                "index": i,
+                                "isEncoded": false,
+                                "maxDurability": 100,
+                                "minDurability": 0,
+                                "onlyFoundInRaid": Data.inraid,
+                                "parentId": "",
+                                "target": Data.itemid,
                                 "value": Data.count,
                                 "visibilityConditions": []
                             });

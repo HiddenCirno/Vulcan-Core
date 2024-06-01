@@ -2754,6 +2754,25 @@ export class VulcanCommon {
                         })
                     }
                         break;
+                        case "HandGroup": {
+                            QFinish.push({
+                                "conditionType": "HandoverItem",
+                                "dogtagLevel": 0,
+                                "dynamicLocale": false,
+                                "globalQuestCounterId": "",
+                                "id": localekey,
+                                "index": i,
+                                "isEncoded": false,
+                                "maxDurability": 100,
+                                "minDurability": 0,
+                                "onlyFoundInRaid": Data.inraid,
+                                "parentId": "",
+                                "target": Data.itemid,
+                                "value": Data.count,
+                                "visibilityConditions": []
+                            })
+                        }
+                            break;
                     case "Kill": {
                         QFinish.push({
                             "completeInSeconds": 0,
