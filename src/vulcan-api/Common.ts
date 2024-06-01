@@ -2300,8 +2300,6 @@ export class VulcanCommon {
         Target.Fail = []
         for (var r = 0; r < RW.length; r++) {
             const RW2 = RW[r]
-            const QuestID = this.getID(RW2.Quest)
-            const QuestsData = this.databaseServer.getTables().templates.quests[QuestID]
             const Name = performance.now() + RW2.Name
             switch (RW2.Condition) {
                 case "Finish": {
