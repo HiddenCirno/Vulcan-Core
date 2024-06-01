@@ -58,6 +58,21 @@ class Mod {
             };
             // The modifier Always makes sure this replacement method is ALWAYS replaced
         }, { frequency: "Always" });
+        //自定义货币交易处理
+        container.afterResolution("PaymentService", (_t, result) => {
+            //将原逻辑复制保留
+            //result.giveProfileMoneySrc = result.giveProfileMoney;
+            //覆写新逻辑,委托的形式（不推荐直接赋值）
+            //result.giveProfileMoney = (
+            //    pmcData: IPmcData,
+            //    amountToSend: number,
+            //    request: IProcessSellTradeRequestData,
+            //    output: IItemEventRouterResponse,
+            //    sessionID: string,) => {
+            //    return this.giveProfileMoney(pmcData, amountToSend, request, output, sessionID);
+            //};
+            result.giveProfileMoney = this.giveProfileMoney(pmcData, amountToSend, request, output, sessionID);
+        }, { frequency: "Always" });
         //addTrader.addTraderPreAkiload(inFuncContainer,商人名字)
     }
     postAkiLoad(container) {
@@ -374,6 +389,142 @@ class Mod {
             else {
                 return common.getGiftItemByType(common.drawFromArray(normalpool.normal), 0);
             }
+        }
+    }
+    giveProfileMoney(pmcData, amountToSend, request, output, sessionID) {
+        const logger = Mod.container.resolve("WinstonLogger");
+        const importerUtil = Mod.container.resolve("ImporterUtil");
+        const preAkiModLoader = Mod.container.resolve("PreAkiModLoader");
+        const weightedRandomHelper = Mod.container.resolve("WeightedRandomHelper");
+        const itemFilterService = Mod.container.resolve("ItemFilterService");
+        const randomUtil = Mod.container.resolve("RandomUtil");
+        const presetHelper = Mod.container.resolve("PresetHelper");
+        const itemHelper = Mod.container.resolve("ItemHelper");
+        const localisationService = Mod.container.resolve("LocalisationService");
+        const mathUtil = Mod.container.resolve("MathUtil");
+        const hashUtil = Mod.container.resolve("HashUtil");
+        const jsonUtil = Mod.container.resolve("JsonUtil");
+        const vfs = Mod.container.resolve("VFS");
+        const databaseServer = Mod.container.resolve("DatabaseServer");
+        const ModPath = preAkiModLoader.getModPath("[火神之心]VulcanCore");
+        const common = Mod.container.resolve("VulcanCommon");
+        const repeatableQuestRewardGenerator = Mod.container.resolve("RepeatableQuestRewardGenerator");
+        const lootGenerator = Mod.container.resolve("LootGenerator");
+        const inventoryHelper = Mod.container.resolve("InventoryHelper");
+        const traderHelper = Mod.container.resolve("TraderHelper");
+        const paymentHelper = Mod.container.resolve("PaymentHelper");
+        const handbookHelper = Mod.container.resolve("HandbookHelper");
+        common.Log("覆写测试");
+        const trader = traderHelper.getTrader(request.tid, sessionID);
+        const currency = paymentHelper.getCurrency(trader.currency);
+        let calcAmount = handbookHelper.fromRUB(handbookHelper.inRUB(amountToSend, currency), currency);
+        const currencyMaxStackSize = databaseServer.getTables().templates.items[currency]._props.StackMaxSize;
+        let skipSendingMoneyToStash = false;
+        const customcurrency = trader.customcurrency;
+        var customcalcAmount = Math.floor(amountToSend / trader.customcurrencyMulti);
+        const customcurrencyMaxStackSize = databaseServer.getTables().templates.items[customcurrency]._props.StackMaxSize;
+        common.Log("覆写测试");
+        common.Log(customcurrency);
+        if (trader.customcurrency) {
+            common.Log("自定义货币");
+            for (const item of pmcData.Inventory.items) {
+                // Item is not currency
+                if (item._tpl !== customcurrency) {
+                    continue;
+                }
+                // Item is not in the stash
+                if (!inventoryHelper.isItemInStash(pmcData, item)) {
+                    continue;
+                }
+                // Found currency item
+                if (item.upd.StackObjectsCount < customcurrencyMaxStackSize) {
+                    if (item.upd.StackObjectsCount + calcAmount > customcurrencyMaxStackSize) {
+                        // calculate difference
+                        calcAmount -= customcurrencyMaxStackSize - item.upd.StackObjectsCount;
+                        item.upd.StackObjectsCount = customcurrencyMaxStackSize;
+                    }
+                    else {
+                        skipSendingMoneyToStash = true;
+                        item.upd.StackObjectsCount = item.upd.StackObjectsCount + calcAmount;
+                    }
+                    // Inform client of change to items StackObjectsCount
+                    output.profileChanges[sessionID].items.change.push(item);
+                    if (skipSendingMoneyToStash) {
+                        break;
+                    }
+                }
+            }
+            // Create single currency item with all currency on it
+            const rootCurrencyReward = {
+                _id: hashUtil.generate(),
+                _tpl: customcurrency,
+                upd: { StackObjectsCount: Math.round(calcAmount) },
+            };
+            // Ensure money is properly split to follow its max stack size limit
+            const rewards = itemHelper.splitStackIntoSeparateItems(rootCurrencyReward);
+            if (!skipSendingMoneyToStash) {
+                const addItemToStashRequest = {
+                    itemsWithModsToAdd: rewards,
+                    foundInRaid: false,
+                    callback: null,
+                    useSortingTable: true,
+                };
+                inventoryHelper.addItemsToStash(sessionID, addItemToStashRequest, pmcData, output);
+            }
+            // Calcualte new total sale sum with trader item sold to
+            const saleSum = pmcData.TradersInfo[request.tid].salesSum + customcalcAmount;
+            pmcData.TradersInfo[request.tid].salesSum = saleSum;
+            traderHelper.lvlUp(request.tid, pmcData);
+        }
+        else {
+            for (const item of pmcData.Inventory.items) {
+                // Item is not currency
+                if (item._tpl !== currency) {
+                    continue;
+                }
+                // Item is not in the stash
+                if (!inventoryHelper.isItemInStash(pmcData, item)) {
+                    continue;
+                }
+                // Found currency item
+                if (item.upd.StackObjectsCount < currencyMaxStackSize) {
+                    if (item.upd.StackObjectsCount + calcAmount > currencyMaxStackSize) {
+                        // calculate difference
+                        calcAmount -= currencyMaxStackSize - item.upd.StackObjectsCount;
+                        item.upd.StackObjectsCount = currencyMaxStackSize;
+                    }
+                    else {
+                        skipSendingMoneyToStash = true;
+                        item.upd.StackObjectsCount = item.upd.StackObjectsCount + calcAmount;
+                    }
+                    // Inform client of change to items StackObjectsCount
+                    output.profileChanges[sessionID].items.change.push(item);
+                    if (skipSendingMoneyToStash) {
+                        break;
+                    }
+                }
+            }
+            // Create single currency item with all currency on it
+            const rootCurrencyReward = {
+                _id: hashUtil.generate(),
+                _tpl: currency,
+                upd: { StackObjectsCount: Math.round(calcAmount) },
+            };
+            // Ensure money is properly split to follow its max stack size limit
+            const rewards = itemHelper.splitStackIntoSeparateItems(rootCurrencyReward);
+            if (!skipSendingMoneyToStash) {
+                const addItemToStashRequest = {
+                    itemsWithModsToAdd: rewards,
+                    foundInRaid: false,
+                    callback: null,
+                    useSortingTable: true,
+                };
+                inventoryHelper.addItemsToStash(sessionID, addItemToStashRequest, pmcData, output);
+            }
+            // Calcualte new total sale sum with trader item sold to
+            const saleSum = pmcData.TradersInfo[request.tid].salesSum + amountToSend;
+            pmcData.TradersInfo[request.tid].salesSum = saleSum;
+            traderHelper.lvlUp(request.tid, pmcData);
         }
     }
 }
