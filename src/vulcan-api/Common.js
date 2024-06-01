@@ -955,24 +955,44 @@ let VulcanCommon = class VulcanCommon {
                             {
                                 this.databaseServer.getTables().locales.global.ch[Data.id] = Data.locale;
                                 this.databaseServer.getTables().locales.global.en[Data.id] = Data.enlocale;
-                                QFinish.push({
-                                    "conditionType": "HandoverItem",
-                                    "dogtagLevel": 0,
-                                    "dynamicLocale": false,
-                                    "globalQuestCounterId": "",
-                                    "id": Data.id,
-                                    "index": i,
-                                    "isEncoded": false,
-                                    "maxDurability": 100,
-                                    "minDurability": 0,
-                                    "onlyFoundInRaid": Data.inraid,
-                                    "parentId": "",
-                                    "target": [
-                                        Data.itemid
-                                    ],
-                                    "value": Data.count,
-                                    "visibilityConditions": []
-                                });
+                                if (Data.itemid.length > 0) {
+                                    QFinish.push({
+                                        "conditionType": "HandoverItem",
+                                        "dogtagLevel": 0,
+                                        "dynamicLocale": false,
+                                        "globalQuestCounterId": "",
+                                        "id": Data.id,
+                                        "index": i,
+                                        "isEncoded": false,
+                                        "maxDurability": 100,
+                                        "minDurability": 0,
+                                        "onlyFoundInRaid": Data.inraid,
+                                        "parentId": "",
+                                        "target": Data.itemid,
+                                        "value": Data.count,
+                                        "visibilityConditions": []
+                                    });
+                                }
+                                else {
+                                    QFinish.push({
+                                        "conditionType": "HandoverItem",
+                                        "dogtagLevel": 0,
+                                        "dynamicLocale": false,
+                                        "globalQuestCounterId": "",
+                                        "id": Data.id,
+                                        "index": i,
+                                        "isEncoded": false,
+                                        "maxDurability": 100,
+                                        "minDurability": 0,
+                                        "onlyFoundInRaid": Data.inraid,
+                                        "parentId": "",
+                                        "target": [
+                                            Data.itemid
+                                        ],
+                                        "value": Data.count,
+                                        "visibilityConditions": []
+                                    });
+                                }
                             }
                             break;
                         case "Kill":

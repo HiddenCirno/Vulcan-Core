@@ -50,7 +50,7 @@ import { SeasonalEventService } from "@spt-aki/services/SeasonalEventService";
 import { MathUtil } from "@spt-aki/utils/MathUtil";
 import { ObjectId } from "@spt-aki/utils/ObjectId";
 import { RandomUtil } from "@spt-aki/utils/RandomUtil";
-import {RepeatableQuestRewardGenerator} from "@spt-aki/generators/RepeatableQuestRewardGenerator";
+import { RepeatableQuestRewardGenerator } from "@spt-aki/generators/RepeatableQuestRewardGenerator";
 @injectable()
 
 
@@ -946,45 +946,47 @@ export class VulcanCommon {
                         case "Hand": {
                             this.databaseServer.getTables().locales.global.ch[Data.id] = Data.locale
                             this.databaseServer.getTables().locales.global.en[Data.id] = Data.enlocale
-                            if(Data.itemid.length>0){
-                                QFinish.push({
-                                    "conditionType": "HandoverItem",
-                                    "dogtagLevel": 0,
-                                    "dynamicLocale": false,
-                                    "globalQuestCounterId": "",
-                                    "id": Data.id,
-                                    "index": i,
-                                    "isEncoded": false,
-                                    "maxDurability": 100,
-                                    "minDurability": 0,
-                                    "onlyFoundInRaid": Data.inraid,
-                                    "parentId": "",
-                                    "target": Data.itemid,
-                                    "value": Data.count,
-                                    "visibilityConditions": []
-                                })
-                            }
-                            else{
-                                QFinish.push({
-                                    "conditionType": "HandoverItem",
-                                    "dogtagLevel": 0,
-                                    "dynamicLocale": false,
-                                    "globalQuestCounterId": "",
-                                    "id": Data.id,
-                                    "index": i,
-                                    "isEncoded": false,
-                                    "maxDurability": 100,
-                                    "minDurability": 0,
-                                    "onlyFoundInRaid": Data.inraid,
-                                    "parentId": "",
-                                    "target": [
-                                        Data.itemid
-                                    ],
-                                    "value": Data.count,
-                                    "visibilityConditions": []
-                                })
-                            }
-                            
+                            QFinish.push({
+                                "conditionType": "HandoverItem",
+                                "dogtagLevel": 0,
+                                "dynamicLocale": false,
+                                "globalQuestCounterId": "",
+                                "id": Data.id,
+                                "index": i,
+                                "isEncoded": false,
+                                "maxDurability": 100,
+                                "minDurability": 0,
+                                "onlyFoundInRaid": Data.inraid,
+                                "parentId": "",
+                                "target": [
+                                    Data.itemid
+                                ],
+                                "value": Data.count,
+                                "visibilityConditions": []
+                            })
+
+                        }
+                            break;
+                        case "HandGroup": {
+                            this.databaseServer.getTables().locales.global.ch[Data.id] = Data.locale
+                            this.databaseServer.getTables().locales.global.en[Data.id] = Data.enlocale
+                            QFinish.push({
+                                "conditionType": "HandoverItem",
+                                "dogtagLevel": 0,
+                                "dynamicLocale": false,
+                                "globalQuestCounterId": "",
+                                "id": Data.id,
+                                "index": i,
+                                "isEncoded": false,
+                                "maxDurability": 100,
+                                "minDurability": 0,
+                                "onlyFoundInRaid": Data.inraid,
+                                "parentId": "",
+                                "target": Data.itemid,
+                                "value": Data.count,
+                                "visibilityConditions": []
+                            })
+
                         }
                             break;
                         case "Kill": {
@@ -1741,8 +1743,8 @@ export class VulcanCommon {
                             rewardTplPool: ItemObj[i]._props.BoxData.Rewards
                         }
                     }
-                    if(ItemObj[i]._props.isQuestItem == true){
-                        for(var m = 0; m < ItemObj[i]._props.QuestItemData.location.length; m++){
+                    if (ItemObj[i]._props.isQuestItem == true) {
+                        for (var m = 0; m < ItemObj[i]._props.QuestItemData.location.length; m++) {
                             this.databaseServer.getTables().locations[ItemObj[i]._props.QuestItemData.location[m]].looseLoot.spawnpointsForced.push(ItemObj[i]._props.QuestItemData)
                         }
                     }
@@ -2263,8 +2265,8 @@ export class VulcanCommon {
                     }
                 }
             })
-            for(let i in scavcase[sc].requires){
-                this.databaseServer.getTables().hideout.scavcase[this.databaseServer.getTables().hideout.scavcase.length-1].Requirements.push({
+            for (let i in scavcase[sc].requires) {
+                this.databaseServer.getTables().hideout.scavcase[this.databaseServer.getTables().hideout.scavcase.length - 1].Requirements.push({
                     "templateId": i,
                     "count": scavcase[sc].requires[i],
                     "isFunctional": false,
@@ -2274,19 +2276,19 @@ export class VulcanCommon {
             }
         }
     }
-    public initDailyQuest(daily){
+    public initDailyQuest(daily) {
         const questConfig = this.configServer.getConfig<IQuestConfig>(ConfigTypes.QUEST);
-        for(let i in daily){
+        for (let i in daily) {
             questConfig.repeatableQuests.push(daily[i])
         }
     }
-    public initLocale(files, lang){
+    public initLocale(files, lang) {
         const Locale = lang != null ? this.databaseServer.getTables().locales.global[lang] : this.databaseServer.getTables().locales.global.ch
         for (let quest in files) {
             Locale[quest] = files[quest]
         }
     }
-    public initLocaleRITC(info, files, lang){
+    public initLocaleRITC(info, files, lang) {
         const Locale = lang != null ? this.databaseServer.getTables().locales.global[lang] : this.databaseServer.getTables().locales.global.ch
         for (let quest in files) {
             Locale[quest] = `${files[quest]}<color=#FF0066><b>\n此任务由RITC创建。\n扩展包：${info.Name}</b></color>`
@@ -2638,544 +2640,544 @@ export class VulcanCommon {
         }
     }
     public initQuestCondDaily(Conditions, Target) {
-            var Q = Conditions
-            var Start = Q.Start
-            var Finish = Q.Finish
-            var Fail = Q.Fail
-            const Quest = Target
-            if (Start.Override == true) {
-                Quest.conditions.AvailableForStart = []
-            }
-            if (Finish.Override == true) {
-                Quest.conditions.AvailableForFinish = []
-            }
-            const QStart = Quest.conditions.AvailableForStart
-            const QFinish = Quest.conditions.AvailableForFinish
-            const QFail = Quest.conditions.Fail
-            const dailylocalecache = {
+        var Q = Conditions
+        var Start = Q.Start
+        var Finish = Q.Finish
+        var Fail = Q.Fail
+        const Quest = Target
+        if (Start.Override == true) {
+            Quest.conditions.AvailableForStart = []
+        }
+        if (Finish.Override == true) {
+            Quest.conditions.AvailableForFinish = []
+        }
+        const QStart = Quest.conditions.AvailableForStart
+        const QFinish = Quest.conditions.AvailableForFinish
+        const QFail = Quest.conditions.Fail
+        const dailylocalecache = {
 
-            }
-            if (Start.Data.length > 0) {
-                for (var i = 0; i < Start.Data.length; i++) {
-                    var Data = Start.Data[i]
-                    switch (Data.type) {
-                        case "Quest": {
-                            QStart.push({
-                                "availableAfter": 0,
-                                "conditionType": "Quest",
-                                "dispersion": 0,
-                                "dynamicLocale": false,
-                                "globalQuestCounterId": "",
-                                "id": Data.id,
-                                "index": i,
-                                "parentId": "",
-                                "status": Data.status,
-                                "target": Data.questid,
-                                "visibilityConditions": []
-                            })
-                        }
-                            break;
-                        case "Level": {
-                            QStart.push({
-                                "compareMethod": ">=",
-                                "conditionType": "Level",
-                                "dynamicLocale": false,
-                                "globalQuestCounterId": "",
-                                "id": Data.id,
-                                "index": i,
-                                "parentId": "",
-                                "value": Data.count,
-                                "visibilityConditions": []
-                            })
-                        }
-                            break;
-                        case "Trust": {
-                            QStart.push({
-                                "compareMethod": ">=",
-                                "conditionType": "TraderLoyalty",
-                                "dynamicLocale": false,
-                                "globalQuestCounterId": "",
-                                "id": Data.id,
-                                "index": i,
-                                "parentId": "",
-                                "target": Data.trader,
-                                "value": Data.count,
-                                "visibilityConditions": []
-                            })
-                        }
-                            break;
+        }
+        if (Start.Data.length > 0) {
+            for (var i = 0; i < Start.Data.length; i++) {
+                var Data = Start.Data[i]
+                switch (Data.type) {
+                    case "Quest": {
+                        QStart.push({
+                            "availableAfter": 0,
+                            "conditionType": "Quest",
+                            "dispersion": 0,
+                            "dynamicLocale": false,
+                            "globalQuestCounterId": "",
+                            "id": Data.id,
+                            "index": i,
+                            "parentId": "",
+                            "status": Data.status,
+                            "target": Data.questid,
+                            "visibilityConditions": []
+                        })
                     }
+                        break;
+                    case "Level": {
+                        QStart.push({
+                            "compareMethod": ">=",
+                            "conditionType": "Level",
+                            "dynamicLocale": false,
+                            "globalQuestCounterId": "",
+                            "id": Data.id,
+                            "index": i,
+                            "parentId": "",
+                            "value": Data.count,
+                            "visibilityConditions": []
+                        })
+                    }
+                        break;
+                    case "Trust": {
+                        QStart.push({
+                            "compareMethod": ">=",
+                            "conditionType": "TraderLoyalty",
+                            "dynamicLocale": false,
+                            "globalQuestCounterId": "",
+                            "id": Data.id,
+                            "index": i,
+                            "parentId": "",
+                            "target": Data.trader,
+                            "value": Data.count,
+                            "visibilityConditions": []
+                        })
+                    }
+                        break;
                 }
             }
-            if (Finish.Data.length > 0) {
-                for (var i = 0; i < Finish.Data.length; i++) {
-                    var Data = Finish.Data[i]
-                    var localekey = Data.locale
-                    this.databaseServer.getTables().locales.global.ch[localekey] = Data.locale
-                    this.databaseServer.getTables().locales.global.en[localekey] = Data.enlocale
-                    switch (Data.type) {
-                        case "Find": { 
-                            QFinish.push({
-                                "conditionType": "FindItem",
-                                "countInRaid": false,
-                                "dogtagLevel": 0,
-                                "dynamicLocale": false,
-                                "globalQuestCounterId": "",
-                                "id": localekey,
-                                "index": i,
-                                "isEncoded": false,
-                                "maxDurability": 100,
-                                "minDurability": 0,
-                                "onlyFoundInRaid": Data.inraid,
-                                "parentId": "",
-                                "target": [
-                                    Data.itemid
-                                ],
-                                "value": Data.count,
-                                "visibilityConditions": []
-                            })
-                        }
-                            break;
-                        case "Hand": { 
-                            QFinish.push({
-                                "conditionType": "HandoverItem",
-                                "dogtagLevel": 0,
-                                "dynamicLocale": false,
-                                "globalQuestCounterId": "",
-                                "id": localekey,
-                                "index": i,
-                                "isEncoded": false,
-                                "maxDurability": 100,
-                                "minDurability": 0,
-                                "onlyFoundInRaid": Data.inraid,
-                                "parentId": "",
-                                "target": [
-                                    Data.itemid
-                                ],
-                                "value": Data.count,
-                                "visibilityConditions": []
-                            })
-                        }
-                            break;
-                        case "Kill": { 
-                            QFinish.push({
-                                "completeInSeconds": 0,
-                                "conditionType": "CounterCreator",
-                                "counter": {
-                                    "conditions": [],
-                                    "id": `${localekey}指示器`
-                                },
-                                "doNotResetIfCounterCompleted": false,
-                                "dynamicLocale": false,
-                                "globalQuestCounterId": "",
-                                "id": localekey,
-                                "index": i,
-                                "oneSessionOnly": Data.oneraid,
-                                "parentId": "",
-                                "type": "Elimination",
-                                "value": Data.count,
-                                "visibilityConditions": []
-                            })
+        }
+        if (Finish.Data.length > 0) {
+            for (var i = 0; i < Finish.Data.length; i++) {
+                var Data = Finish.Data[i]
+                var localekey = Data.locale
+                this.databaseServer.getTables().locales.global.ch[localekey] = Data.locale
+                this.databaseServer.getTables().locales.global.en[localekey] = Data.enlocale
+                switch (Data.type) {
+                    case "Find": {
+                        QFinish.push({
+                            "conditionType": "FindItem",
+                            "countInRaid": false,
+                            "dogtagLevel": 0,
+                            "dynamicLocale": false,
+                            "globalQuestCounterId": "",
+                            "id": localekey,
+                            "index": i,
+                            "isEncoded": false,
+                            "maxDurability": 100,
+                            "minDurability": 0,
+                            "onlyFoundInRaid": Data.inraid,
+                            "parentId": "",
+                            "target": [
+                                Data.itemid
+                            ],
+                            "value": Data.count,
+                            "visibilityConditions": []
+                        })
+                    }
+                        break;
+                    case "Hand": {
+                        QFinish.push({
+                            "conditionType": "HandoverItem",
+                            "dogtagLevel": 0,
+                            "dynamicLocale": false,
+                            "globalQuestCounterId": "",
+                            "id": localekey,
+                            "index": i,
+                            "isEncoded": false,
+                            "maxDurability": 100,
+                            "minDurability": 0,
+                            "onlyFoundInRaid": Data.inraid,
+                            "parentId": "",
+                            "target": [
+                                Data.itemid
+                            ],
+                            "value": Data.count,
+                            "visibilityConditions": []
+                        })
+                    }
+                        break;
+                    case "Kill": {
+                        QFinish.push({
+                            "completeInSeconds": 0,
+                            "conditionType": "CounterCreator",
+                            "counter": {
+                                "conditions": [],
+                                "id": `${localekey}指示器`
+                            },
+                            "doNotResetIfCounterCompleted": false,
+                            "dynamicLocale": false,
+                            "globalQuestCounterId": "",
+                            "id": localekey,
+                            "index": i,
+                            "oneSessionOnly": Data.oneraid,
+                            "parentId": "",
+                            "type": "Elimination",
+                            "value": Data.count,
+                            "visibilityConditions": []
+                        })
+                        QFinish[QFinish.length - 1].counter.conditions.push({
+                            "bodyPart": [],
+                            "compareMethod": ">=",
+                            "conditionType": "Kills",
+                            "daytime": {
+                                "from": Data.daytime[0],
+                                "to": Data.daytime[1]
+                            },
+                            "distance": {
+                                "compareMethod": Data.distancetype,
+                                "value": Data.distance
+                            },
+                            "dynamicLocale": false,
+                            "enemyEquipmentExclusive": [],
+                            "enemyEquipmentInclusive": [],
+                            "enemyHealthEffects": [],
+                            "id": `${localekey}指示器条件`,
+                            "resetOnSessionEnd": false,
+                            "savageRole": Data.role,
+                            "target": Data.bot,
+                            "value": 1,
+                            "weapon": Data.weapon,
+                            "weaponCaliber": [],
+                            "weaponModsExclusive": [],
+                            "weaponModsInclusive": []
+                        })
+                        if (Data.location.length > 0) {
                             QFinish[QFinish.length - 1].counter.conditions.push({
-                                "bodyPart": [],
-                                "compareMethod": ">=",
-                                "conditionType": "Kills",
-                                "daytime": {
-                                    "from": Data.daytime[0],
-                                    "to": Data.daytime[1]
-                                },
-                                "distance": {
-                                    "compareMethod": Data.distancetype,
-                                    "value": Data.distance
-                                },
+                                "conditionType": "Location",
                                 "dynamicLocale": false,
-                                "enemyEquipmentExclusive": [],
-                                "enemyEquipmentInclusive": [],
-                                "enemyHealthEffects": [],
-                                "id": `${localekey}指示器条件`,
-                                "resetOnSessionEnd": false,
-                                "savageRole": Data.role,
-                                "target": Data.bot,
-                                "value": 1,
-                                "weapon": Data.weapon,
-                                "weaponCaliber": [],
-                                "weaponModsExclusive": [],
-                                "weaponModsInclusive": []
+                                "id": `${localekey}_地图需求`,
+                                "target": Data.location
                             })
-                            if (Data.location.length > 0) {
-                                QFinish[QFinish.length - 1].counter.conditions.push({
-                                    "conditionType": "Location",
-                                    "dynamicLocale": false,
-                                    "id": `${localekey}_地图需求`,
-                                    "target": Data.location
-                                })
-                            }
-                            if (Data.zone.length > 0) {
-                                QFinish[QFinish.length - 1].counter.conditions.push({
-                                    "conditionType": "InZone",
-                                    "dynamicLocale": false,
-                                    "id": `${localekey}_地点需求`,
-                                    "zoneIds": Data.zone
-                                })
-                            }
-                            if (Data.Equip.length > 0) {
-                                for (var j = 0; j < Data.Equip.length; j++) {
+                        }
+                        if (Data.zone.length > 0) {
+                            QFinish[QFinish.length - 1].counter.conditions.push({
+                                "conditionType": "InZone",
+                                "dynamicLocale": false,
+                                "id": `${localekey}_地点需求`,
+                                "zoneIds": Data.zone
+                            })
+                        }
+                        if (Data.Equip.length > 0) {
+                            for (var j = 0; j < Data.Equip.length; j++) {
 
-                                    QFinish[QFinish.length - 1].counter.conditions.push({
-                                        "IncludeNotEquippedItems": false,
-                                        "conditionType": "Equipment",
-                                        "dynamicLocale": false,
-                                        "equipmentExclusive": [],
-                                        "equipmentInclusive": [],
-                                        "id": `${localekey}_装备需求${j}`
-                                    })
-                                    for (var k = 0; k < Data.Equip[j].length; k++) {
-                                        QFinish[QFinish.length - 1].counter.conditions[QFinish[QFinish.length - 1].counter.conditions.length - 1].equipmentInclusive.push([
-                                            Data.Equip[j][k]
-                                        ])
-                                    }
-                                }
-
-                            }
-                            if (Data.Mod.length > 0) {
-                                for (var j = 0; j < Data.Mod.length; j++) {
-                                    QFinish[QFinish.length - 1].counter.conditions[0].weaponModsInclusive.push([
-                                        Data.Mod[j]
+                                QFinish[QFinish.length - 1].counter.conditions.push({
+                                    "IncludeNotEquippedItems": false,
+                                    "conditionType": "Equipment",
+                                    "dynamicLocale": false,
+                                    "equipmentExclusive": [],
+                                    "equipmentInclusive": [],
+                                    "id": `${localekey}_装备需求${j}`
+                                })
+                                for (var k = 0; k < Data.Equip[j].length; k++) {
+                                    QFinish[QFinish.length - 1].counter.conditions[QFinish[QFinish.length - 1].counter.conditions.length - 1].equipmentInclusive.push([
+                                        Data.Equip[j][k]
                                     ])
                                 }
                             }
+
                         }
-                            break;
-                        case "Level": { 
-                            QFinish.push({
-                                "conditionType": "Level",
-                                "id": localekey,
-                                "index": i,
-                                "parentId": "",
-                                "dynamicLocale": false,
-                                "value": Data.count,
-                                "compareMethod": ">=",
-                                "visibilityConditions": [],
-                                "isEncoded": false,
-                                "countInRaid": false,
-                                "globalQuestCounterId": "",
-                                "target": ""
-                            })
+                        if (Data.Mod.length > 0) {
+                            for (var j = 0; j < Data.Mod.length; j++) {
+                                QFinish[QFinish.length - 1].counter.conditions[0].weaponModsInclusive.push([
+                                    Data.Mod[j]
+                                ])
+                            }
                         }
-                            break;
-                        case "Visit": { 
-                            QFinish.push({
-                                "completeInSeconds": 0,
-                                "conditionType": "CounterCreator",
-                                "counter": {
-                                    "conditions": [
-                                        {
-                                            "conditionType": "VisitPlace",
-                                            "dynamicLocale": false,
-                                            "id": `${localekey}指示器目标`,
-                                            "target": Data.zoneid,
-                                            "value": 1
-                                        }
-                                    ],
-                                    "id": `${localekey}指示器`
-                                },
-                                "doNotResetIfCounterCompleted": false,
-                                "dynamicLocale": false,
-                                "globalQuestCounterId": "",
-                                "id": localekey,
-                                "index": i,
-                                "oneSessionOnly": Data.oneraid,
-                                "parentId": "",
-                                "type": "Exploration",
-                                "value": 1,
-                                "visibilityConditions": []
-                            })
-                        }
-                            break;
-                        case "Leave": { 
-                            QFinish.push({
-                                "conditionType": "LeaveItemAtLocation",
-                                "dogtagLevel": 0,
-                                "dynamicLocale": false,
-                                "globalQuestCounterId": "",
-                                "id": localekey,
-                                "index": i,
-                                "isEncoded": false,
-                                "maxDurability": 100,
-                                "minDurability": 0,
-                                "onlyFoundInRaid": false,
-                                "parentId": "",
-                                "plantTime": Data.time,
-                                "target": [
-                                    Data.itemid
+                    }
+                        break;
+                    case "Level": {
+                        QFinish.push({
+                            "conditionType": "Level",
+                            "id": localekey,
+                            "index": i,
+                            "parentId": "",
+                            "dynamicLocale": false,
+                            "value": Data.count,
+                            "compareMethod": ">=",
+                            "visibilityConditions": [],
+                            "isEncoded": false,
+                            "countInRaid": false,
+                            "globalQuestCounterId": "",
+                            "target": ""
+                        })
+                    }
+                        break;
+                    case "Visit": {
+                        QFinish.push({
+                            "completeInSeconds": 0,
+                            "conditionType": "CounterCreator",
+                            "counter": {
+                                "conditions": [
+                                    {
+                                        "conditionType": "VisitPlace",
+                                        "dynamicLocale": false,
+                                        "id": `${localekey}指示器目标`,
+                                        "target": Data.zoneid,
+                                        "value": 1
+                                    }
                                 ],
-                                "value": Data.count,
-                                "visibilityConditions": [],
-                                "zoneId": Data.zoneid
-                            })
-                        }
-                            break;
-                        case "Extract": { 
-                            QFinish.push({
-                                "completeInSeconds": 0,
-                                "conditionType": "CounterCreator",
-                                "counter": {
-                                    "conditions": [
-                                        {
-                                            "conditionType": "Location",
-                                            "dynamicLocale": false,
-                                            "id": `${localekey}指示器_Location`,
-                                            "target": Data.location
-                                        },
-                                        {
-                                            "conditionType": "ExitStatus",
-                                            "dynamicLocale": false,
-                                            "id": `${localekey}指示器_ExitStatus`,
-                                            "status": Data.status
-                                        }
-                                    ],
-                                    "id": `${localekey}指示器`
-                                },
-                                "doNotResetIfCounterCompleted": false,
+                                "id": `${localekey}指示器`
+                            },
+                            "doNotResetIfCounterCompleted": false,
+                            "dynamicLocale": false,
+                            "globalQuestCounterId": "",
+                            "id": localekey,
+                            "index": i,
+                            "oneSessionOnly": Data.oneraid,
+                            "parentId": "",
+                            "type": "Exploration",
+                            "value": 1,
+                            "visibilityConditions": []
+                        })
+                    }
+                        break;
+                    case "Leave": {
+                        QFinish.push({
+                            "conditionType": "LeaveItemAtLocation",
+                            "dogtagLevel": 0,
+                            "dynamicLocale": false,
+                            "globalQuestCounterId": "",
+                            "id": localekey,
+                            "index": i,
+                            "isEncoded": false,
+                            "maxDurability": 100,
+                            "minDurability": 0,
+                            "onlyFoundInRaid": false,
+                            "parentId": "",
+                            "plantTime": Data.time,
+                            "target": [
+                                Data.itemid
+                            ],
+                            "value": Data.count,
+                            "visibilityConditions": [],
+                            "zoneId": Data.zoneid
+                        })
+                    }
+                        break;
+                    case "Extract": {
+                        QFinish.push({
+                            "completeInSeconds": 0,
+                            "conditionType": "CounterCreator",
+                            "counter": {
+                                "conditions": [
+                                    {
+                                        "conditionType": "Location",
+                                        "dynamicLocale": false,
+                                        "id": `${localekey}指示器_Location`,
+                                        "target": Data.location
+                                    },
+                                    {
+                                        "conditionType": "ExitStatus",
+                                        "dynamicLocale": false,
+                                        "id": `${localekey}指示器_ExitStatus`,
+                                        "status": Data.status
+                                    }
+                                ],
+                                "id": `${localekey}指示器`
+                            },
+                            "doNotResetIfCounterCompleted": false,
+                            "dynamicLocale": false,
+                            "globalQuestCounterId": "",
+                            "id": localekey,
+                            "index": 0,
+                            "oneSessionOnly": Data.oneraid,
+                            "parentId": "",
+                            "type": "Exploration",
+                            "value": Data.count,
+                            "visibilityConditions": []
+                        })
+                        if (Data.chosenextractpoint == true) {
+                            QFinish[QFinish.length - 1].counter.conditions.push({
+                                "conditionType": "ExitName",
                                 "dynamicLocale": false,
-                                "globalQuestCounterId": "",
-                                "id": localekey,
-                                "index": 0,
-                                "oneSessionOnly": Data.oneraid,
-                                "parentId": "",
-                                "type": "Exploration",
-                                "value": Data.count,
-                                "visibilityConditions": []
-                            })
-                            if (Data.chosenextractpoint == true) {
-                                QFinish[QFinish.length - 1].counter.conditions.push({
-                                    "conditionType": "ExitName",
-                                    "dynamicLocale": false,
-                                    "exitName": Data.extractpoint,
-                                    "id": `${localekey}指示器_ExitName`
-                                })
-                            }
-                        }
-                            break;
-                        case "Skill": { 
-                            QFinish.push({
-                                "compareMethod": ">=",
-                                "conditionType": "Skill",
-                                "dynamicLocale": false,
-                                "globalQuestCounterId": "",
-                                "id": localekey,
-                                "index": 0,
-                                "parentId": "",
-                                "target": Data.skill,
-                                "value": Data.count,
-                                "visibilityConditions": []
+                                "exitName": Data.extractpoint,
+                                "id": `${localekey}指示器_ExitName`
                             })
                         }
                     }
+                        break;
+                    case "Skill": {
+                        QFinish.push({
+                            "compareMethod": ">=",
+                            "conditionType": "Skill",
+                            "dynamicLocale": false,
+                            "globalQuestCounterId": "",
+                            "id": localekey,
+                            "index": 0,
+                            "parentId": "",
+                            "target": Data.skill,
+                            "value": Data.count,
+                            "visibilityConditions": []
+                        })
+                    }
                 }
             }
-            if (Fail.Data.length > 0) {
+        }
+        if (Fail.Data.length > 0) {
 
-                for (var i = 0; i < Fail.Data.length; i++) {
-                    var Data = Fail.Data[i]
-                    switch (Data.type) {
-                        case "Kill": {
-                            QFail.push({
-                                "completeInSeconds": 0,
-                                "conditionType": "CounterCreator",
-                                "counter": {
-                                    "conditions": [],
-                                    "id": `${Data.id}指示器`
-                                },
-                                "doNotResetIfCounterCompleted": false,
-                                "dynamicLocale": false,
-                                "globalQuestCounterId": "",
-                                "id": Data.id,
-                                "index": i,
-                                "oneSessionOnly": Data.oneraid,
-                                "parentId": "",
-                                "type": "Elimination",
-                                "value": Data.count,
-                                "visibilityConditions": []
-                            })
+            for (var i = 0; i < Fail.Data.length; i++) {
+                var Data = Fail.Data[i]
+                switch (Data.type) {
+                    case "Kill": {
+                        QFail.push({
+                            "completeInSeconds": 0,
+                            "conditionType": "CounterCreator",
+                            "counter": {
+                                "conditions": [],
+                                "id": `${Data.id}指示器`
+                            },
+                            "doNotResetIfCounterCompleted": false,
+                            "dynamicLocale": false,
+                            "globalQuestCounterId": "",
+                            "id": Data.id,
+                            "index": i,
+                            "oneSessionOnly": Data.oneraid,
+                            "parentId": "",
+                            "type": "Elimination",
+                            "value": Data.count,
+                            "visibilityConditions": []
+                        })
+                        QFail[QFail.length - 1].counter.conditions.push({
+                            "bodyPart": [],
+                            "compareMethod": ">=",
+                            "conditionType": "Kills",
+                            "daytime": {
+                                "from": Data.daytime[0],
+                                "to": Data.daytime[1]
+                            },
+                            "distance": {
+                                "compareMethod": Data.distancetype,
+                                "value": Data.distance
+                            },
+                            "dynamicLocale": false,
+                            "enemyEquipmentExclusive": [],
+                            "enemyEquipmentInclusive": [],
+                            "enemyHealthEffects": [],
+                            "id": `${Data.id}指示器条件`,
+                            "resetOnSessionEnd": false,
+                            "savageRole": Data.role,
+                            "target": Data.bot,
+                            "value": 1,
+                            "weapon": Data.weapon,
+                            "weaponCaliber": [],
+                            "weaponModsExclusive": [],
+                            "weaponModsInclusive": []
+                        })
+                        if (Data.location.length > 0) {
                             QFail[QFail.length - 1].counter.conditions.push({
-                                "bodyPart": [],
-                                "compareMethod": ">=",
-                                "conditionType": "Kills",
-                                "daytime": {
-                                    "from": Data.daytime[0],
-                                    "to": Data.daytime[1]
-                                },
-                                "distance": {
-                                    "compareMethod": Data.distancetype,
-                                    "value": Data.distance
-                                },
+                                "conditionType": "Location",
                                 "dynamicLocale": false,
-                                "enemyEquipmentExclusive": [],
-                                "enemyEquipmentInclusive": [],
-                                "enemyHealthEffects": [],
-                                "id": `${Data.id}指示器条件`,
-                                "resetOnSessionEnd": false,
-                                "savageRole": Data.role,
-                                "target": Data.bot,
-                                "value": 1,
-                                "weapon": Data.weapon,
-                                "weaponCaliber": [],
-                                "weaponModsExclusive": [],
-                                "weaponModsInclusive": []
+                                "id": `${Data.id}_地图需求`,
+                                "target": Data.location
                             })
-                            if (Data.location.length > 0) {
-                                QFail[QFail.length - 1].counter.conditions.push({
-                                    "conditionType": "Location",
-                                    "dynamicLocale": false,
-                                    "id": `${Data.id}_地图需求`,
-                                    "target": Data.location
-                                })
-                            }
-                            if (Data.zone.length > 0) {
-                                QFail[QFail.length - 1].counter.conditions.push({
-                                    "conditionType": "InZone",
-                                    "dynamicLocale": false,
-                                    "id": `${Data.id}_地点需求`,
-                                    "zoneIds": Data.zone
-                                })
-                            }
-                            if (Data.Equip.length > 0) {
-                                for (var j = 0; j < Data.Equip.length; j++) {
+                        }
+                        if (Data.zone.length > 0) {
+                            QFail[QFail.length - 1].counter.conditions.push({
+                                "conditionType": "InZone",
+                                "dynamicLocale": false,
+                                "id": `${Data.id}_地点需求`,
+                                "zoneIds": Data.zone
+                            })
+                        }
+                        if (Data.Equip.length > 0) {
+                            for (var j = 0; j < Data.Equip.length; j++) {
 
-                                    QFail[QFail.length - 1].counter.conditions.push({
-                                        "IncludeNotEquippedItems": false,
-                                        "conditionType": "Equipment",
-                                        "dynamicLocale": false,
-                                        "equipmentExclusive": [],
-                                        "equipmentInclusive": [],
-                                        "id": `${Data.id}_装备需求${j}`
-                                    })
-                                    for (var k = 0; k < Data.Equip[j].length; k++) {
-                                        QFail[QFail.length - 1].counter.conditions[QFail[QFail.length - 1].counter.conditions.length - 1].equipmentInclusive.push([
-                                            Data.Equip[j][k]
-                                        ])
-                                    }
-                                }
-
-                            }
-                            if (Data.Mod.length > 0) {
-                                for (var j = 0; j < Data.Mod.length; j++) {
-                                    QFail[QFail.length - 1].counter.conditions[0].weaponModsInclusive.push([
-                                        Data.Mod[j]
+                                QFail[QFail.length - 1].counter.conditions.push({
+                                    "IncludeNotEquippedItems": false,
+                                    "conditionType": "Equipment",
+                                    "dynamicLocale": false,
+                                    "equipmentExclusive": [],
+                                    "equipmentInclusive": [],
+                                    "id": `${Data.id}_装备需求${j}`
+                                })
+                                for (var k = 0; k < Data.Equip[j].length; k++) {
+                                    QFail[QFail.length - 1].counter.conditions[QFail[QFail.length - 1].counter.conditions.length - 1].equipmentInclusive.push([
+                                        Data.Equip[j][k]
                                     ])
                                 }
                             }
+
                         }
-                            break;
-                        case "Level": {
-                            QFail.push({
-                                "conditionType": "Level",
-                                "id": Data.id,
-                                "index": i,
-                                "parentId": "",
-                                "dynamicLocale": false,
-                                "value": Data.count,
-                                "compareMethod": ">=",
-                                "visibilityConditions": [],
-                                "isEncoded": false,
-                                "countInRaid": false,
-                                "globalQuestCounterId": "",
-                                "target": ""
-                            })
-                        }
-                            break;
-                        case "Visit": {
-                            QFail.push({
-                                "completeInSeconds": 0,
-                                "conditionType": "CounterCreator",
-                                "counter": {
-                                    "conditions": [
-                                        {
-                                            "conditionType": "VisitPlace",
-                                            "dynamicLocale": false,
-                                            "id": `${Data.id}`,
-                                            "target": Data.zoneid,
-                                            "value": 1
-                                        }
-                                    ],
-                                    "id": `${Data.id}指示器`
-                                },
-                                "doNotResetIfCounterCompleted": false,
-                                "dynamicLocale": false,
-                                "globalQuestCounterId": "",
-                                "id": Data.id,
-                                "index": i,
-                                "oneSessionOnly": Data.oneraid,
-                                "parentId": "",
-                                "type": "Exploration",
-                                "value": 1,
-                                "visibilityConditions": []
-                            })
-                        }
-                            break;
-                        case "Extract": {
-                            QFail.push({
-                                "completeInSeconds": 0,
-                                "conditionType": "CounterCreator",
-                                "counter": {
-                                    "conditions": [
-                                        {
-                                            "conditionType": "Location",
-                                            "dynamicLocale": false,
-                                            "id": `${Data.id}指示器_Location`,
-                                            "target": Data.location
-                                        },
-                                        {
-                                            "conditionType": "ExitStatus",
-                                            "dynamicLocale": false,
-                                            "id": `${Data.id}指示器_ExitStatus`,
-                                            "status": Data.status
-                                        }
-                                    ],
-                                    "id": `${Data.id}指示器`
-                                },
-                                "doNotResetIfCounterCompleted": false,
-                                "dynamicLocale": false,
-                                "globalQuestCounterId": "",
-                                "id": Data.id,
-                                "index": 0,
-                                "oneSessionOnly": Data.oneraid,
-                                "parentId": "",
-                                "type": "Exploration",
-                                "value": Data.count,
-                                "visibilityConditions": []
-                            })
-                            if (Data.chosenextractpoint == true) {
-                                QFail[QFail.length - 1].counter.conditions.push({
-                                    "conditionType": "ExitName",
-                                    "dynamicLocale": false,
-                                    "exitName": Data.extractpoint,
-                                    "id": `${Data.id}指示器_ExitName`
-                                })
+                        if (Data.Mod.length > 0) {
+                            for (var j = 0; j < Data.Mod.length; j++) {
+                                QFail[QFail.length - 1].counter.conditions[0].weaponModsInclusive.push([
+                                    Data.Mod[j]
+                                ])
                             }
                         }
-                            break;
-                        case "Quest": {
-                            QFail.push({
-                                "availableAfter": 0,
-                                "conditionType": "Quest",
-                                "dispersion": 0,
+                    }
+                        break;
+                    case "Level": {
+                        QFail.push({
+                            "conditionType": "Level",
+                            "id": Data.id,
+                            "index": i,
+                            "parentId": "",
+                            "dynamicLocale": false,
+                            "value": Data.count,
+                            "compareMethod": ">=",
+                            "visibilityConditions": [],
+                            "isEncoded": false,
+                            "countInRaid": false,
+                            "globalQuestCounterId": "",
+                            "target": ""
+                        })
+                    }
+                        break;
+                    case "Visit": {
+                        QFail.push({
+                            "completeInSeconds": 0,
+                            "conditionType": "CounterCreator",
+                            "counter": {
+                                "conditions": [
+                                    {
+                                        "conditionType": "VisitPlace",
+                                        "dynamicLocale": false,
+                                        "id": `${Data.id}`,
+                                        "target": Data.zoneid,
+                                        "value": 1
+                                    }
+                                ],
+                                "id": `${Data.id}指示器`
+                            },
+                            "doNotResetIfCounterCompleted": false,
+                            "dynamicLocale": false,
+                            "globalQuestCounterId": "",
+                            "id": Data.id,
+                            "index": i,
+                            "oneSessionOnly": Data.oneraid,
+                            "parentId": "",
+                            "type": "Exploration",
+                            "value": 1,
+                            "visibilityConditions": []
+                        })
+                    }
+                        break;
+                    case "Extract": {
+                        QFail.push({
+                            "completeInSeconds": 0,
+                            "conditionType": "CounterCreator",
+                            "counter": {
+                                "conditions": [
+                                    {
+                                        "conditionType": "Location",
+                                        "dynamicLocale": false,
+                                        "id": `${Data.id}指示器_Location`,
+                                        "target": Data.location
+                                    },
+                                    {
+                                        "conditionType": "ExitStatus",
+                                        "dynamicLocale": false,
+                                        "id": `${Data.id}指示器_ExitStatus`,
+                                        "status": Data.status
+                                    }
+                                ],
+                                "id": `${Data.id}指示器`
+                            },
+                            "doNotResetIfCounterCompleted": false,
+                            "dynamicLocale": false,
+                            "globalQuestCounterId": "",
+                            "id": Data.id,
+                            "index": 0,
+                            "oneSessionOnly": Data.oneraid,
+                            "parentId": "",
+                            "type": "Exploration",
+                            "value": Data.count,
+                            "visibilityConditions": []
+                        })
+                        if (Data.chosenextractpoint == true) {
+                            QFail[QFail.length - 1].counter.conditions.push({
+                                "conditionType": "ExitName",
                                 "dynamicLocale": false,
-                                "globalQuestCounterId": "",
-                                "id": Data.id,
-                                "index": i,
-                                "parentId": "",
-                                "status": Data.status,
-                                "target": Data.questid,
-                                "visibilityConditions": []
+                                "exitName": Data.extractpoint,
+                                "id": `${Data.id}指示器_ExitName`
                             })
                         }
                     }
+                        break;
+                    case "Quest": {
+                        QFail.push({
+                            "availableAfter": 0,
+                            "conditionType": "Quest",
+                            "dispersion": 0,
+                            "dynamicLocale": false,
+                            "globalQuestCounterId": "",
+                            "id": Data.id,
+                            "index": i,
+                            "parentId": "",
+                            "status": Data.status,
+                            "target": Data.questid,
+                            "visibilityConditions": []
+                        })
+                    }
                 }
             }
+        }
     }
-    public convertCustomPreset(PresetArr, count){
+    public convertCustomPreset(PresetArr, count) {
         const result = []
         var hashparm = `${count}_${performance.now()}`
         result.push({
@@ -3191,7 +3193,7 @@ export class VulcanCommon {
                 }
             }
         })
-        for(var i = 1; i < PresetArr.length; i++){
+        for (var i = 1; i < PresetArr.length; i++) {
             result.push({
                 "_id": this.generateHash(`${PresetArr[i]._id}_${hashparm}`),
                 "_tpl": PresetArr[i]._tpl,
@@ -3201,28 +3203,28 @@ export class VulcanCommon {
         }
         return result
     }
-    public convertItemList(item, count){
+    public convertItemList(item, count) {
         return [
             {
-                    "_id": this.generateHash(`${item.name}_${count}_${performance.now()}`),
-                    "_tpl": item.itemid,
-                    "upd":{
-                        "StackObjectsCount" : item.stackcount
-                    }
+                "_id": this.generateHash(`${item.name}_${count}_${performance.now()}`),
+                "_tpl": item.itemid,
+                "upd": {
+                    "StackObjectsCount": item.stackcount
+                }
             }
         ]
     }
-    public convertVanillaPreset(itemid, count){
+    public convertVanillaPreset(itemid, count) {
         const result = []
         var hashparm = `${count}_${performance.now()}`
         var VanillaPreset = this.databaseServer.getTables().globals.ItemPresets
         var PresetArr = []
-        for(let p in VanillaPreset){
-            if(VanillaPreset[p]._encyclopedia == itemid){
+        for (let p in VanillaPreset) {
+            if (VanillaPreset[p]._encyclopedia == itemid) {
                 PresetArr = this.deepCopy(VanillaPreset[p]._items)
             }
         }
-        if(PresetArr.length>0){
+        if (PresetArr.length > 0) {
             result.push({
                 "_id": this.generateHash(`${PresetArr[0]._id}_${hashparm}`),
                 "_tpl": PresetArr[0]._tpl,
@@ -3236,7 +3238,7 @@ export class VulcanCommon {
                     }
                 }
             })
-            for(var i = 1; i < PresetArr.length; i++){
+            for (var i = 1; i < PresetArr.length; i++) {
                 result.push({
                     "_id": this.generateHash(`${PresetArr[i]._id}_${hashparm}`),
                     "_tpl": PresetArr[i]._tpl,
@@ -3245,16 +3247,16 @@ export class VulcanCommon {
                 })
             }
         }
-        else{
+        else {
             result.push({
                 "_id": this.generateHash(`${itemid}_${count}_${performance.now()}`),
                 "_tpl": itemid
-        })
-        this.Warn(`警告: 未发现有效预设, 生成失败。\n物品: ${itemid} ${this.getItemLocaleData(itemid, "ch")?.Name}`)
+            })
+            this.Warn(`警告: 未发现有效预设, 生成失败。\n物品: ${itemid} ${this.getItemLocaleData(itemid, "ch")?.Name}`)
         }
         return result
     }
-    public convertAmmoBox(itemid, count){
+    public convertAmmoBox(itemid, count) {
         //妈的为什么弹药盒没有预设啊, 好几把烦....
         //搞完这个是不是就没了
         //信号棒有必要么
@@ -3263,7 +3265,7 @@ export class VulcanCommon {
         //而且不能重编码
         const result = []
         const Item = this.getItem(itemid)
-        if(Item){
+        if (Item) {
             const fatherid = this.generateHash(`${itemid}_${count}_${performance.now()}`)
             result.push({
                 "_id": fatherid,
@@ -3275,22 +3277,22 @@ export class VulcanCommon {
                 //敲里吗, 我ID写错了
                 "parentId": fatherid,
                 "slotId": "cartridges",
-                "upd":{
-                    "StackObjectsCount" : Item._props.StackSlots[0]._max_count
+                "upd": {
+                    "StackObjectsCount": Item._props.StackSlots[0]._max_count
                 }
                 //敲里吗有堆叠, 草
 
             })
             return result
         }
-        else{
+        else {
             this.Warn(`警告: 物品解析失败。物品ID: ${itemid}`)
             return
         }
     }
-    public getGiftItemByType(itemdata, count){
-        switch(itemdata.type){
-            case "CustomPreset":{
+    public getGiftItemByType(itemdata, count) {
+        switch (itemdata.type) {
+            case "CustomPreset": {
                 return this.convertCustomPreset(itemdata.item, count)
             }
             case "VanillaPreset": {
@@ -3307,22 +3309,22 @@ export class VulcanCommon {
             }
         }
     }
-    public drawFromArray(array){  
-        if (array.length === 0) {  
-            throw new Error('数组为空');  
-        }  
-        const randomIndex = Math.floor(Math.random() * array.length);  
-        return array[randomIndex];  
+    public drawFromArray(array) {
+        if (array.length === 0) {
+            throw new Error('数组为空');
+        }
+        const randomIndex = Math.floor(Math.random() * array.length);
+        return array[randomIndex];
     }
-    public initGiftData(giftdata){
-        if(!this.databaseServer.getTables().globals.GiftData){
+    public initGiftData(giftdata) {
+        if (!this.databaseServer.getTables().globals.GiftData) {
             this.databaseServer.getTables().globals.GiftData = {}
         }
-        for(let i in giftdata){
+        for (let i in giftdata) {
             this.databaseServer.getTables().globals.GiftData[i] = giftdata[i]
         }
     }
-    public getGiftData(datastring){
+    public getGiftData(datastring) {
         return this.databaseServer.getTables().globals.GiftData[datastring]
     }
 
