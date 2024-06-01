@@ -63,6 +63,8 @@ import { HandbookHelper } from "@spt-aki/helpers/HandbookHelper";
 import { Money } from "@spt-aki/models/enums/Money";
 import { IProcessSellTradeRequestData } from "@spt-aki/models/eft/trade/IProcessSellTradeRequestData";
 import { PaymentService } from "@spt-aki/services/PaymentService";
+import { FenceService } from "@spt-aki/services/FenceService";
+import { HttpResponseUtil } from "@spt-aki/utils/HttpResponseUtil";
 //const addTrader = new TraderOperateJsonOdj
 //
 class Mod implements IPreAkiLoadMod {
@@ -124,18 +126,19 @@ class Mod implements IPreAkiLoadMod {
         }, { frequency: "Always" });
 
         //自定义货币交易处理
-        container.afterResolution("PaymentService", (_t, result: PaymentService) => {
+        container.afterResolution("TradeHelper", (_t, result: TradeHelper) => {
             //将原逻辑复制保留
             //result.giveProfileMoneySrc = result.giveProfileMoney;
             //覆写新逻辑,委托的形式（不推荐直接赋值）
-            result.giveProfileMoney = (
-                pmcData: IPmcData,
-                amountToSend: number,
-                request: IProcessSellTradeRequestData,
-                output: IItemEventRouterResponse,
-                sessionID: string,) => {
-                return this.giveProfileMoney(pmcData, amountToSend, request, output, sessionID);
+            result.sellItem = (
+                profileWithItemsToSell: IPmcData,
+                profileToReceiveMoney: IPmcData,
+                sellRequest: IProcessSellTradeRequestData,
+                sessionID: string,
+                output: IItemEventRouterResponse,) => {
+                return this.sellItem(profileWithItemsToSell, profileToReceiveMoney, sellRequest, sessionID, output);
             };
+            //result.giveProfileMoney = this.giveProfileMoney
         }, { frequency: "Always" });
 
         
@@ -529,6 +532,132 @@ class Mod implements IPreAkiLoadMod {
 
 
     }
+    public sellItem(
+        profileWithItemsToSell: IPmcData,
+        profileToReceiveMoney: IPmcData,
+        sellRequest: IProcessSellTradeRequestData,
+        sessionID: string,
+        output: IItemEventRouterResponse,){
+            
+        const logger = Mod.container.resolve("WinstonLogger");
+        const importerUtil = Mod.container.resolve("ImporterUtil");
+        const preAkiModLoader = Mod.container.resolve("PreAkiModLoader");
+        const weightedRandomHelper = Mod.container.resolve("WeightedRandomHelper");
+        const itemFilterService = Mod.container.resolve("ItemFilterService");
+        const randomUtil = Mod.container.resolve("RandomUtil");
+        const presetHelper = Mod.container.resolve("PresetHelper");
+        const itemHelper = Mod.container.resolve("ItemHelper");
+        const localisationService = Mod.container.resolve("LocalisationService");
+        const mathUtil = Mod.container.resolve("MathUtil");
+        const hashUtil = Mod.container.resolve("HashUtil");
+        const jsonUtil = Mod.container.resolve("JsonUtil");
+        const vfs = Mod.container.resolve("VFS")
+        const databaseServer = Mod.container.resolve("DatabaseServer")
+        const ModPath = preAkiModLoader.getModPath("[火神之心]VulcanCore")
+        const common = Mod.container.resolve("VulcanCommon")
+        const repeatableQuestRewardGenerator = Mod.container.resolve("RepeatableQuestRewardGenerator")
+        const lootGenerator = Mod.container.resolve("LootGenerator")
+        const inventoryHelper = Mod.container.resolve("InventoryHelper")
+        const traderHelper = Mod.container.resolve("TraderHelper")
+        const paymentHelper = Mod.container.resolve("PaymentHelper")
+        const paymentService = Mod.container.resolve("PaymentService")
+        const handbookHelper = Mod.container.resolve("HandbookHelper")
+        const httpResponse = Mod.container.resolve("HttpResponseUtil")
+
+        // Find item in inventory and remove it
+        for (const itemToBeRemoved of sellRequest.items) {
+            // Strip out whitespace
+            const itemIdToFind = itemToBeRemoved.id.replace(/\s+/g, "");
+
+            // Find item in player inventory, or show error to player if not found
+            const matchingItemInInventory = profileWithItemsToSell.Inventory.items.find((x) => x._id === itemIdToFind);
+
+            if (!matchingItemInInventory) {
+                const errorMessage = `Unable to sell item ${itemToBeRemoved.id}, cannot be found in player inventory`;
+                logger.error(errorMessage);
+                httpResponse.appendErrorToOutput(output, errorMessage);
+                return;
+            }
+
+            logger.debug(`Selling: id: ${matchingItemInInventory._id} tpl: ${matchingItemInInventory._tpl}`);
+
+            // THIS IS THE ONLY CHANGE WE DO IN THIS METHOD!
+            if (sellRequest.tid === Traders.FENCE) {
+                this.addToFence(profileWithItemsToSell.Inventory.items, matchingItemInInventory._id);
+            }
+            // THIS IS THE ONLY CHANGE WE DO IN THIS METHOD!
+
+            // Also removes children
+            inventoryHelper.removeItem(profileWithItemsToSell, itemToBeRemoved.id, sessionID, output);
+        }
+
+        // Give player money for sold item(s)
+        this.giveProfileMoney(profileToReceiveMoney, sellRequest.price, sellRequest, output, sessionID);
+    }
+    public  addToFence(itemCollection: Item[], itemId: string) {
+        const logger = Mod.container.resolve("WinstonLogger");
+        const importerUtil = Mod.container.resolve("ImporterUtil");
+        const preAkiModLoader = Mod.container.resolve("PreAkiModLoader");
+        const weightedRandomHelper = Mod.container.resolve("WeightedRandomHelper");
+        const itemFilterService = Mod.container.resolve("ItemFilterService");
+        const randomUtil = Mod.container.resolve("RandomUtil");
+        const presetHelper = Mod.container.resolve("PresetHelper");
+        const itemHelper = Mod.container.resolve("ItemHelper");
+        const localisationService = Mod.container.resolve("LocalisationService");
+        const mathUtil = Mod.container.resolve("MathUtil");
+        const hashUtil = Mod.container.resolve("HashUtil");
+        const jsonUtil = Mod.container.resolve("JsonUtil");
+        const vfs = Mod.container.resolve("VFS")
+        const databaseServer = Mod.container.resolve("DatabaseServer")
+        const ModPath = preAkiModLoader.getModPath("[火神之心]VulcanCore")
+        const common = Mod.container.resolve("VulcanCommon")
+        const repeatableQuestRewardGenerator = Mod.container.resolve("RepeatableQuestRewardGenerator")
+        const lootGenerator = Mod.container.resolve("LootGenerator")
+        const inventoryHelper = Mod.container.resolve("InventoryHelper")
+        const traderHelper = Mod.container.resolve("TraderHelper")
+        const paymentHelper = Mod.container.resolve("PaymentHelper")
+        const paymentService = Mod.container.resolve("PaymentService")
+        const handbookHelper = Mod.container.resolve("HandbookHelper")
+        const httpResponse = Mod.container.resolve("HttpResponseUtil")
+        const fenceService = Mod.container.resolve("FenceService")
+        const configServer = Mod.container.resolve("ConfigServer")
+        // yes, this is technically a protected class variable, but we can access it here since we don't care.
+        const assort = fenceService.fenceAssort;
+
+        // Copy the item and its children
+        let items = structuredClone(itemHelper.findAndReturnChildrenAsItems(itemCollection, itemId));
+        const root = items[0];
+
+        const traderConfig = configServer.getConfig<ITraderConfig>(ConfigTypes.TRADER);
+        const cost = handbookHelper.getTemplatePriceForItems(items) * traderConfig.fence.itemPriceMult;
+
+        // Fix IDs
+        items = itemHelper.reparentItemAndChildren(root, items);
+        root.parentId = "hideout";
+
+        // Clean up the items
+        delete root.location;
+
+        for (const item of items) {
+            if (item.parentId == "hideout") {
+                continue;
+            }
+
+            delete item.upd;
+        }
+
+        // Add the item to fence's assortment
+        assort.items.push(...items);
+        assort.barter_scheme[root._id] = [
+            [
+                {
+                    count: cost,
+                    _tpl: Money.ROUBLES
+                }
+            ]
+        ];
+        assort.loyal_level_items[root._id] = 1;
+    }
     public giveProfileMoney(
         pmcData: IPmcData,
         amountToSend: number,
@@ -558,8 +687,11 @@ class Mod implements IPreAkiLoadMod {
         const inventoryHelper = Mod.container.resolve("InventoryHelper")
         const traderHelper = Mod.container.resolve("TraderHelper")
         const paymentHelper = Mod.container.resolve("PaymentHelper")
+        const paymentService = Mod.container.resolve("PaymentService")
         const handbookHelper = Mod.container.resolve("HandbookHelper")
-        common.Log("覆写测试")
+
+        //common.Log("覆写测试")
+        //vfs.writeFile(`${ModPath}export.json`, JSON.stringify(request, null, 4))
 
         const trader = traderHelper.getTrader(request.tid, sessionID);
         const currency = paymentHelper.getCurrency(trader.currency);
@@ -567,13 +699,13 @@ class Mod implements IPreAkiLoadMod {
         const currencyMaxStackSize = databaseServer.getTables().templates.items[currency]._props.StackMaxSize;
         let skipSendingMoneyToStash = false;
 
-        const customcurrency = trader.customcurrency
-        var customcalcAmount = Math.floor(amountToSend/trader.customcurrencyMulti)
-        const customcurrencyMaxStackSize = databaseServer.getTables().templates.items[customcurrency]._props.StackMaxSize;
-        common.Log("覆写测试")
-        common.Log(customcurrency)
+        //common.Log("覆写测试")
         if(trader.customcurrency){
-            common.Log("自定义货币")
+            const customcurrency = trader.customcurrency
+            var customcalcAmount = Math.floor(amountToSend/trader.customcurrencyMulti)
+            const customamountToSend = Math.floor(amountToSend/trader.customcurrencyMulti)
+            const customcurrencyMaxStackSize = databaseServer.getTables().templates.items[customcurrency]._props.StackMaxSize;
+            //common.Log("自定义货币")
             for (const item of pmcData.Inventory.items)
                 {
                     // Item is not currency
@@ -591,16 +723,16 @@ class Mod implements IPreAkiLoadMod {
                     // Found currency item
                     if (item.upd.StackObjectsCount < customcurrencyMaxStackSize)
                     {
-                        if (item.upd.StackObjectsCount + calcAmount > customcurrencyMaxStackSize)
+                        if (item.upd.StackObjectsCount + customcalcAmount > customcurrencyMaxStackSize)
                         {
                             // calculate difference
-                            calcAmount -= customcurrencyMaxStackSize - item.upd.StackObjectsCount;
+                            customcalcAmount -= customcurrencyMaxStackSize - item.upd.StackObjectsCount;
                             item.upd.StackObjectsCount = customcurrencyMaxStackSize;
                         }
                         else
                         {
                             skipSendingMoneyToStash = true;
-                            item.upd.StackObjectsCount = item.upd.StackObjectsCount + calcAmount;
+                            item.upd.StackObjectsCount = item.upd.StackObjectsCount + customcalcAmount;
                         }
         
                         // Inform client of change to items StackObjectsCount
@@ -617,7 +749,7 @@ class Mod implements IPreAkiLoadMod {
                 const rootCurrencyReward = {
                     _id: hashUtil.generate(),
                     _tpl: customcurrency,
-                    upd: { StackObjectsCount: Math.round(calcAmount) },
+                    upd: { StackObjectsCount: Math.round(customcalcAmount) },
                 };
         
                 // Ensure money is properly split to follow its max stack size limit
@@ -635,77 +767,13 @@ class Mod implements IPreAkiLoadMod {
                 }
         
                 // Calcualte new total sale sum with trader item sold to
-                const saleSum = pmcData.TradersInfo[request.tid].salesSum + customcalcAmount;
+                const saleSum = pmcData.TradersInfo[request.tid].salesSum + customamountToSend;
         
                 pmcData.TradersInfo[request.tid].salesSum = saleSum;
                 traderHelper.lvlUp(request.tid, pmcData);
         }
         else{
-            for (const item of pmcData.Inventory.items)
-                {
-                    // Item is not currency
-                    if (item._tpl !== currency)
-                    {
-                        continue;
-                    }
-        
-                    // Item is not in the stash
-                    if (!inventoryHelper.isItemInStash(pmcData, item))
-                    {
-                        continue;
-                    }
-        
-                    // Found currency item
-                    if (item.upd.StackObjectsCount < currencyMaxStackSize)
-                    {
-                        if (item.upd.StackObjectsCount + calcAmount > currencyMaxStackSize)
-                        {
-                            // calculate difference
-                            calcAmount -= currencyMaxStackSize - item.upd.StackObjectsCount;
-                            item.upd.StackObjectsCount = currencyMaxStackSize;
-                        }
-                        else
-                        {
-                            skipSendingMoneyToStash = true;
-                            item.upd.StackObjectsCount = item.upd.StackObjectsCount + calcAmount;
-                        }
-        
-                        // Inform client of change to items StackObjectsCount
-                        output.profileChanges[sessionID].items.change.push(item);
-        
-                        if (skipSendingMoneyToStash)
-                        {
-                            break;
-                        }
-                    }
-                }
-        
-                // Create single currency item with all currency on it
-                const rootCurrencyReward = {
-                    _id: hashUtil.generate(),
-                    _tpl: currency,
-                    upd: { StackObjectsCount: Math.round(calcAmount) },
-                };
-        
-                // Ensure money is properly split to follow its max stack size limit
-                const rewards = itemHelper.splitStackIntoSeparateItems(rootCurrencyReward);
-        
-                if (!skipSendingMoneyToStash)
-                {
-                    const addItemToStashRequest: IAddItemsDirectRequest = {
-                        itemsWithModsToAdd: rewards,
-                        foundInRaid: false,
-                        callback: null,
-                        useSortingTable: true,
-                    };
-                    inventoryHelper.addItemsToStash(sessionID, addItemToStashRequest, pmcData, output);
-                }
-        
-                // Calcualte new total sale sum with trader item sold to
-                const saleSum = pmcData.TradersInfo[request.tid].salesSum + amountToSend;
-        
-                pmcData.TradersInfo[request.tid].salesSum = saleSum;
-                traderHelper.lvlUp(request.tid, pmcData);
+            paymentService.giveProfileMoney(pmcData, amountToSend, request, output, sessionID)
         }
 
         
