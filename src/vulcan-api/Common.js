@@ -1494,23 +1494,23 @@ let VulcanCommon = class VulcanCommon {
                 const sourceValue = source[key];
                 const targetValue = target[key];
                 if (Array.isArray(sourceValue)) {
-                    // If the value is an array
-                    if (Array.isArray(targetValue)) {
-                        // If target value is also an array, merge them
-                        target[key] = this.mergeArrays(targetValue, sourceValue);
-                    }
-                    else {
-                        // If target value is not an array, directly assign the source value
+                    // If the value is an array, assign the array
+                    target[key] = sourceValue;
+                }
+                else if (sourceValue != null && typeof sourceValue === 'object') {
+                    // Check if the sourceValue is an empty object
+                    if (Object.keys(sourceValue).length === 0) {
+                        // If sourceValue is an empty object, directly assign it
                         target[key] = sourceValue;
                     }
-                }
-                else if (sourceValue !== null && typeof sourceValue === 'object') {
-                    // If the value is an object, recursively merge
-                    if (targetValue !== null && typeof targetValue === 'object') {
-                        target[key] = this.deepMerge(targetValue, sourceValue);
-                    }
                     else {
-                        target[key] = this.deepMerge({}, sourceValue);
+                        // If the value is a non-empty object, recursively merge
+                        if (targetValue != null && typeof targetValue === 'object') {
+                            target[key] = this.deepMerge(targetValue, sourceValue);
+                        }
+                        else {
+                            target[key] = this.deepMerge({}, sourceValue);
+                        }
                     }
                 }
                 else {
@@ -1586,6 +1586,11 @@ let VulcanCommon = class VulcanCommon {
                                 foundInRaid: true,
                                 rewardTplPool: ItemObj[i]._props.BoxData.Rewards
                             };
+                        }
+                        if (ItemObj[i]._props.isQuestItem == true) {
+                            for (var m = 0; m < ItemObj[i]._props.QuestItemData.location.length; m++) {
+                                this.databaseServer.getTables().locations[ItemObj[i]._props.QuestItemData.location[m]].looseLoot.spawnpointsForced.push(ItemObj[i]._props.QuestItemData);
+                            }
                         }
                         Local[`${ItemObj[i]._id} Name`] = ItemObj[i]._props.Name;
                         Local[`${ItemObj[i]._id} ShortName`] = ItemObj[i]._props.ShortName;

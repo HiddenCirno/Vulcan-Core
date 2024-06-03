@@ -1481,22 +1481,22 @@ export class VulcanCommon {
             if (source.hasOwnProperty(key)) {
                 const sourceValue = source[key];
                 const targetValue = target[key];
-
+    
                 if (Array.isArray(sourceValue)) {
-                    // If the value is an array
-                    if (Array.isArray(targetValue)) {
-                        // If target value is also an array, merge them
-                        target[key] = this.mergeArrays(targetValue, sourceValue);
-                    } else {
-                        // If target value is not an array, directly assign the source value
+                    // If the value is an array, assign the array
+                    target[key] = sourceValue;
+                } else if (sourceValue != null && typeof sourceValue === 'object') {
+                    // Check if the sourceValue is an empty object
+                    if (Object.keys(sourceValue).length === 0) {
+                        // If sourceValue is an empty object, directly assign it
                         target[key] = sourceValue;
-                    }
-                } else if (sourceValue !== null && typeof sourceValue === 'object') {
-                    // If the value is an object, recursively merge
-                    if (targetValue !== null && typeof targetValue === 'object') {
-                        target[key] = this.deepMerge(targetValue as NestedObject, sourceValue as NestedObject);
                     } else {
-                        target[key] = this.deepMerge({}, sourceValue as NestedObject);
+                        // If the value is a non-empty object, recursively merge
+                        if (targetValue != null && typeof targetValue === 'object') {
+                            target[key] = this.deepMerge(targetValue as NestedObject, sourceValue as NestedObject);
+                        } else {
+                            target[key] = this.deepMerge({}, sourceValue as NestedObject);
+                        }
                     }
                 } else {
                     // Otherwise, directly assign the value
@@ -1567,6 +1567,11 @@ export class VulcanCommon {
                             rewardCount: ItemObj[i]._props.BoxData.Count,
                             foundInRaid: true,
                             rewardTplPool: ItemObj[i]._props.BoxData.Rewards
+                        }
+                    }
+                    if (ItemObj[i]._props.isQuestItem == true) {
+                        for (var m = 0; m < ItemObj[i]._props.QuestItemData.location.length; m++) {
+                            this.databaseServer.getTables().locations[ItemObj[i]._props.QuestItemData.location[m]].looseLoot.spawnpointsForced.push(ItemObj[i]._props.QuestItemData)
                         }
                     }
                     Local[`${ItemObj[i]._id} Name`] = ItemObj[i]._props.Name
@@ -2754,25 +2759,25 @@ export class VulcanCommon {
                         })
                     }
                         break;
-                        case "HandGroup": {
-                            QFinish.push({
-                                "conditionType": "HandoverItem",
-                                "dogtagLevel": 0,
-                                "dynamicLocale": false,
-                                "globalQuestCounterId": "",
-                                "id": localekey,
-                                "index": i,
-                                "isEncoded": false,
-                                "maxDurability": 100,
-                                "minDurability": 0,
-                                "onlyFoundInRaid": Data.inraid,
-                                "parentId": "",
-                                "target": Data.itemid,
-                                "value": Data.count,
-                                "visibilityConditions": []
-                            })
-                        }
-                            break;
+                    case "HandGroup": {
+                        QFinish.push({
+                            "conditionType": "HandoverItem",
+                            "dogtagLevel": 0,
+                            "dynamicLocale": false,
+                            "globalQuestCounterId": "",
+                            "id": localekey,
+                            "index": i,
+                            "isEncoded": false,
+                            "maxDurability": 100,
+                            "minDurability": 0,
+                            "onlyFoundInRaid": Data.inraid,
+                            "parentId": "",
+                            "target": Data.itemid,
+                            "value": Data.count,
+                            "visibilityConditions": []
+                        })
+                    }
+                        break;
                     case "Kill": {
                         QFinish.push({
                             "completeInSeconds": 0,
