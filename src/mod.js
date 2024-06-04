@@ -254,7 +254,9 @@ class Mod {
             return;
         }
         // Find and delete opened container item from player inventory
-        inventoryHelper.removeItem(pmcData, body.item, sessionID, output);
+        //inventoryHelper.removeItem(pmcData, body.item, sessionID, output);
+        //你妈的，有bug，回来再修
+        inventoryHelper.removeItemByCount(pmcData, body.item, 1, sessionID, output);
     }
     getadvGiftBoxContainer(giftdata, pmcdata) {
         const logger = Mod.container.resolve("WinstonLogger");
