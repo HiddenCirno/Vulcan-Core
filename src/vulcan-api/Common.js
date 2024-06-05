@@ -3362,21 +3362,61 @@ let VulcanCommon = class VulcanCommon {
         }
     }
     getGiftItemByType(itemdata, count) {
-        switch (itemdata.type) {
-            case "CustomPreset": {
-                return this.convertCustomPreset(itemdata.item, count);
+        if (Array.isArray(itemdata)) {
+            this.Log("数组");
+            this.Log(JSON.stringify(itemdata, null, 4));
+            var array = [];
+            for (var i = 0; i < itemdata.length; i++) {
+                switch (itemdata[i].type) {
+                    case "CustomPreset":
+                        {
+                            this.Log("武器");
+                            this.Log(itemdata[i].item);
+                            array.push(this.convertCustomPreset(itemdata[i].item, count));
+                        }
+                        break;
+                    case "VanillaPreset":
+                        {
+                            this.Log("原版武器");
+                            this.Log(itemdata[i].item);
+                            array.push(this.convertVanillaPreset(itemdata[i].item, count));
+                        }
+                        break;
+                    case "Item":
+                        {
+                            this.Log("物品");
+                            this.Log(itemdata[i].itemid);
+                            array.push(this.convertItemList(itemdata[i], count));
+                        }
+                        break;
+                    case "AmmoBox":
+                        {
+                            this.Log("弹药盒");
+                            this.Log(itemdata[i].itemid);
+                            array.push(this.convertAmmoBox(itemdata[i].itemid, count));
+                        }
+                        break;
+                }
             }
-            case "VanillaPreset": {
-                return this.convertVanillaPreset(itemdata.item, count);
-            }
-            case "Item": {
-                return this.convertItemList(itemdata, count);
-            }
-            case "AmmoBox": {
-                return this.convertAmmoBox(itemdata.itemid, count);
-            }
-            default: {
-                this.Warn(`警告: 无法解析物品类型 物品ID: ${itemdata.itemid}`);
+            return array;
+        }
+        else {
+            switch (itemdata.type) {
+                case "CustomPreset": {
+                    return this.convertCustomPreset(itemdata.item, count);
+                }
+                case "VanillaPreset": {
+                    return this.convertVanillaPreset(itemdata.item, count);
+                }
+                case "Item": {
+                    return this.convertItemList(itemdata, count);
+                }
+                case "AmmoBox": {
+                    return this.convertAmmoBox(itemdata.itemid, count);
+                }
+                default: {
+                    this.Warn(`警告: 无法解析物品类型 物品ID: ${itemdata.itemid}`);
+                }
             }
         }
     }

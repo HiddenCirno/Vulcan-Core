@@ -341,7 +341,7 @@ class Mod implements IPreAkiLoadMod {
             //需要把卡池独立出来, 然后用字符串查询引导
             //先压测一波
             for (var i = 0; i < count; i++) {
-                rewards.push(this.getadvGiftBoxContainer(giftdata, pmcData))
+                Array.isArray(this.getadvGiftBoxContainer(giftdata, pmcData)[0]) ? rewards.push(...this.getadvGiftBoxContainer(giftdata, pmcData)) :  rewards.push(this.getadvGiftBoxContainer(giftdata, pmcData))
             }
             //common.Log(JSON.stringify(rewards, null, 4))
         }
