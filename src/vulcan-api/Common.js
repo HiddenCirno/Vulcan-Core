@@ -3363,37 +3363,37 @@ let VulcanCommon = class VulcanCommon {
     }
     getGiftItemByType(itemdata, count) {
         if (Array.isArray(itemdata)) {
-            this.Log("数组");
-            this.Log(JSON.stringify(itemdata, null, 4));
+            //this.Log("数组")
+            //this.Log(JSON.stringify(itemdata, null, 4))
             var array = [];
             for (var i = 0; i < itemdata.length; i++) {
                 switch (itemdata[i].type) {
                     case "CustomPreset":
                         {
-                            this.Log("武器");
-                            this.Log(itemdata[i].item);
-                            array.push(this.convertCustomPreset(itemdata[i].item, count));
+                            //this.Log("武器")
+                            //this.Log(itemdata[i].item)
+                            array.push(this.convertCustomPreset(itemdata[i].item, i));
                         }
                         break;
                     case "VanillaPreset":
                         {
-                            this.Log("原版武器");
-                            this.Log(itemdata[i].item);
-                            array.push(this.convertVanillaPreset(itemdata[i].item, count));
+                            //this.Log("原版武器")
+                            //this.Log(itemdata[i].item)
+                            array.push(this.convertVanillaPreset(itemdata[i].item, i));
                         }
                         break;
                     case "Item":
                         {
-                            this.Log("物品");
-                            this.Log(itemdata[i].itemid);
-                            array.push(this.convertItemList(itemdata[i], count));
+                            //this.Log("物品")
+                            //this.Log(itemdata[i].itemid)
+                            array.push(this.convertItemList(itemdata[i], i));
                         }
                         break;
                     case "AmmoBox":
                         {
-                            this.Log("弹药盒");
-                            this.Log(itemdata[i].itemid);
-                            array.push(this.convertAmmoBox(itemdata[i].itemid, count));
+                            //this.Log("弹药盒")
+                            //this.Log(itemdata[i].itemid)
+                            array.push(this.convertAmmoBox(itemdata[i].itemid, i));
                         }
                         break;
                 }

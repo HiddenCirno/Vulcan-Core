@@ -341,7 +341,8 @@ class Mod implements IPreAkiLoadMod {
             //需要把卡池独立出来, 然后用字符串查询引导
             //先压测一波
             for (var i = 0; i < count; i++) {
-                Array.isArray(this.getadvGiftBoxContainer(giftdata, pmcData)[0]) ? rewards.push(...this.getadvGiftBoxContainer(giftdata, pmcData)) :  rewards.push(this.getadvGiftBoxContainer(giftdata, pmcData))
+                var Result = this.getadvGiftBoxContainer(giftdata, pmcData)
+                Array.isArray(Result[0]) ? rewards.push(...Result) :  rewards.push(Result)
             }
             //common.Log(JSON.stringify(rewards, null, 4))
         }
@@ -457,7 +458,7 @@ class Mod implements IPreAkiLoadMod {
         //计算本次抽卡概率与up概率
         var randomchance = Math.floor(Math.random() * 1000) / 1000
         var srrealchance = Math.floor((1/(sr.chancegrowcount + 1 + ((1-sr.chance)/sr.chancegrowpercount)))*1000)/1000
-        var upchance = Math.floor(Math.random() * 100) / 100
+        var upchance = Math.floor(Math.random() * 1000) / 1000
         if (sr.havebasereward) {
             //保底计算
             srdata.count++
@@ -476,8 +477,9 @@ class Mod implements IPreAkiLoadMod {
         //common.Access(`金色数据: 累加概率: ${srdata.addchance}, 抽取次数: ${srdata.count}, 保底叠加概率: ${srdata.upaddchance}`)
         //common.Access(`紫色数据: 累加概率: ${rdata.addchance}, 抽取次数: ${rdata.count}, 保底叠加概率: ${rdata.upaddchance}`)
         //common.Log(`金色概率: ${randomchance} / ${srrealchance + srdata.addchance}`)
-        if ((randomchance <= (srrealchance + srdata.addchance))||(srdata.count == (sr.chancegrowcount + 1 + ((1-sr.chance)/sr.chancegrowpercount)))) {
+        if ((randomchance <= (srrealchance + srdata.addchance))||(srdata.count == (sr.chancegrowcount + 1 + Math.floor(((1-sr.chance)/sr.chancegrowpercount))))) {
             
+            common.Warn(`你抽到了金色传说!`)
             if(srdata.count == (sr.chancegrowcount + 1 + ((1-sr.chance)/sr.chancegrowpercount))){
                 //common.Log("吃满保底啦!")
             }
@@ -488,7 +490,6 @@ class Mod implements IPreAkiLoadMod {
             srdata.count = 0
             rdata.addchance = 0
             rdata.count = 0
-            common.Warn(`你抽到了金色传说!`)
             //common.Access(`金色数据: 累加概率: ${srdata.addchance}, 抽取次数: ${srdata.count}, 保底叠加概率: ${srdata.upaddchance}`)
             //common.Access(`紫色数据: 累加概率: ${rdata.addchance}, 抽取次数: ${rdata.count}, 保底叠加概率: ${rdata.upaddchance}`)
             //up命中
@@ -504,7 +505,7 @@ class Mod implements IPreAkiLoadMod {
             }
         }
         //紫
-        else if (randomchance <= (r.chance)||(rdata.count == (r.chancegrowcount + 1 + ((1-r.chance)/r.chancegrowpercount)))) {
+        else if (randomchance <= (r.chance)||(rdata.count == Math.floor((r.chancegrowcount + 1 + ((1-r.chance)/r.chancegrowpercount))))) {
             rdata.addchance = 0
             rdata.count = 0
             //common.Warn(`你抽到了紫色史诗! 保底已复位`)

@@ -3319,25 +3319,25 @@ export class VulcanCommon {
                     case "CustomPreset": {
                         //this.Log("武器")
                         //this.Log(itemdata[i].item)
-                        array.push(this.convertCustomPreset(itemdata[i].item, count))
+                        array.push(this.convertCustomPreset(itemdata[i].item, i))
                     }
                     break;
                     case "VanillaPreset": {
                         //this.Log("原版武器")
                         //this.Log(itemdata[i].item)
-                        array.push(this.convertVanillaPreset(itemdata[i].item, count))
+                        array.push(this.convertVanillaPreset(itemdata[i].item, i))
                     }
                     break;
                     case "Item": {
                         //this.Log("物品")
                         //this.Log(itemdata[i].itemid)
-                        array.push(this.convertItemList(itemdata[i], count))
+                        array.push(this.convertItemList(itemdata[i], i))
                     }
                     break;
                     case "AmmoBox": {
                         //this.Log("弹药盒")
                         //this.Log(itemdata[i].itemid)
-                        array.push(this.convertAmmoBox(itemdata[i].itemid, count))
+                        array.push(this.convertAmmoBox(itemdata[i].itemid, i))
                     }
                     break;
                 }
