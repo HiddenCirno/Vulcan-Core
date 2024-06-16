@@ -3,36 +3,18 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const tsyringe_1 = require("C:/snapshot/project/node_modules/tsyringe");
 const ConfigTypes_1 = require("C:/snapshot/project/obj/models/enums/ConfigTypes");
 const Traders_1 = require("C:/snapshot/project/obj/models/enums/Traders");
-const console_1 = require("./vulcan-api/console");
-const itemedit_1 = require("./vulcan-api/itemedit");
-const handbook_1 = require("./vulcan-api/handbook");
-const localehelper_1 = require("./vulcan-api/localehelper");
-const miscmethod_1 = require("./vulcan-api/miscmethod");
 //import { TraderAppMerchandise, TraderOperateJsonOdj } from "./vulcan-api/merchantOperate";
-const merchantOperate_1 = require("./vulcan-api/merchantOperate");
-const questhelper_1 = require("./vulcan-api/questhelper");
-const traderhelper_1 = require("./vulcan-api/traderhelper");
-const dbhelper_1 = require("./vulcan-api/dbhelper");
 const Common_1 = require("./vulcan-api/Common");
-const Map_1 = require("./vulcan-api/Map");
 const Money_1 = require("C:/snapshot/project/obj/models/enums/Money");
+const Map_1 = require("./vulcan-api/Map");
 //const addTrader = new TraderOperateJsonOdj
 //
 class Mod {
     static container;
-    preAkiLoad(container) {
+    preSptLoad(container) {
         Mod.container = container;
-        container.register("VulcanConsole", console_1.VulcanConsole, { lifecycle: tsyringe_1.Lifecycle.Singleton });
-        container.register("VulcanItemEditor", itemedit_1.VulcanItemEditor, { lifecycle: tsyringe_1.Lifecycle.Singleton });
-        container.register("VulcanHandBookHelper", handbook_1.VulcanHandBookHelper, { lifecycle: tsyringe_1.Lifecycle.Singleton });
-        container.register("VulcanLocaleHelper", localehelper_1.VulcanLocaleHelper, { lifecycle: tsyringe_1.Lifecycle.Singleton });
-        container.register("TraderAppMerchandise", merchantOperate_1.TraderAppMerchandise, { lifecycle: tsyringe_1.Lifecycle.Singleton });
-        container.register("VulcanQuestHelper", questhelper_1.VulcanQuestHelper, { lifecycle: tsyringe_1.Lifecycle.Singleton });
-        container.register("VulcanMiscMethod", miscmethod_1.VulcanMiscMethod, { lifecycle: tsyringe_1.Lifecycle.Singleton });
-        container.register("VulcanTraderHelper", traderhelper_1.VulcanTraderHelper, { lifecycle: tsyringe_1.Lifecycle.Singleton });
-        container.register("VulcanDatabaseHelper", dbhelper_1.VulcanDatabaseHelper, { lifecycle: tsyringe_1.Lifecycle.Singleton });
-        container.register("VulcanCommon", Common_1.VulcanCommon, { lifecycle: tsyringe_1.Lifecycle.Singleton });
         container.register("VulcanMap", Map_1.VulcanMap, { lifecycle: tsyringe_1.Lifecycle.Singleton });
+        container.register("VulcanCommon", Common_1.VulcanCommon, { lifecycle: tsyringe_1.Lifecycle.Singleton });
         //const repeatableQRG = Mod.container.resolve<repeatableQuestGenerator>("repeatableQuestGeneragor")
         // Wait until LauncherController gets resolved by the server and run code afterwards to replace 
         // the login() function with the one below called 'replacementFunction()
@@ -71,9 +53,9 @@ class Mod {
             };
             //result.giveProfileMoney = this.giveProfileMoney
         }, { frequency: "Always" });
-        //addTrader.addTraderPreAkiload(inFuncContainer,商人名字)
+        //addTrader.addTraderPreSptload(inFuncContainer,商人名字)
     }
-    postAkiLoad(container) {
+    postSptLoad(container) {
         //addTrader.addTraderPosrtDBLoad(inFuncContainer,/* SPT原版格式的assor.json */,/* BaseOdj直接接收SPT原版格式的base.json */,/* 商人名字(同上) */,/* questassort直接接收SPT原版格式的questassort,PS:也可以之后用其他办法添加 */)
         //const common = container.resolve<VulcanCommon>("VulcanCommon");
         //common.Debug(common.getzhItemName("5aa7e276e5b5b000171d0647"))
@@ -169,7 +151,7 @@ class Mod {
     openRandomLootContainer(pmcData, body, sessionID, output) {
         const logger = Mod.container.resolve("WinstonLogger");
         const importerUtil = Mod.container.resolve("ImporterUtil");
-        const preAkiModLoader = Mod.container.resolve("PreAkiModLoader");
+        const preSptModLoader = Mod.container.resolve("PreSptModLoader");
         const weightedRandomHelper = Mod.container.resolve("WeightedRandomHelper");
         const itemFilterService = Mod.container.resolve("ItemFilterService");
         const randomUtil = Mod.container.resolve("RandomUtil");
@@ -180,7 +162,7 @@ class Mod {
         const hashUtil = Mod.container.resolve("HashUtil");
         const jsonUtil = Mod.container.resolve("JsonUtil");
         const vfs = Mod.container.resolve("VFS");
-        const ModPath = preAkiModLoader.getModPath("[火神之心]VulcanCore");
+        const ModPath = preSptModLoader.getModPath("[火神之心]VulcanCore");
         const common = Mod.container.resolve("VulcanCommon");
         const repeatableQuestRewardGenerator = Mod.container.resolve("RepeatableQuestRewardGenerator");
         const lootGenerator = Mod.container.resolve("LootGenerator");
@@ -262,7 +244,7 @@ class Mod {
     getadvGiftBoxContainer(giftdata, pmcdata) {
         const logger = Mod.container.resolve("WinstonLogger");
         const importerUtil = Mod.container.resolve("ImporterUtil");
-        const preAkiModLoader = Mod.container.resolve("PreAkiModLoader");
+        const preSptModLoader = Mod.container.resolve("PreSptModLoader");
         const weightedRandomHelper = Mod.container.resolve("WeightedRandomHelper");
         const itemFilterService = Mod.container.resolve("ItemFilterService");
         const randomUtil = Mod.container.resolve("RandomUtil");
@@ -273,7 +255,7 @@ class Mod {
         const hashUtil = Mod.container.resolve("HashUtil");
         const jsonUtil = Mod.container.resolve("JsonUtil");
         const vfs = Mod.container.resolve("VFS");
-        const ModPath = preAkiModLoader.getModPath("[火神之心]VulcanCore");
+        const ModPath = preSptModLoader.getModPath("[火神之心]VulcanCore");
         const common = Mod.container.resolve("VulcanCommon");
         const repeatableQuestRewardGenerator = Mod.container.resolve("RepeatableQuestRewardGenerator");
         const lootGenerator = Mod.container.resolve("LootGenerator");
@@ -395,9 +377,10 @@ class Mod {
     sellItem(profileWithItemsToSell, profileToReceiveMoney, sellRequest, sessionID, output) {
         const logger = Mod.container.resolve("WinstonLogger");
         const importerUtil = Mod.container.resolve("ImporterUtil");
-        const preAkiModLoader = Mod.container.resolve("PreAkiModLoader");
+        const preSptModLoader = Mod.container.resolve("PreSptModLoader");
         const weightedRandomHelper = Mod.container.resolve("WeightedRandomHelper");
         const itemFilterService = Mod.container.resolve("ItemFilterService");
+        const fenceService = Mod.container.resolve("FenceService");
         const randomUtil = Mod.container.resolve("RandomUtil");
         const presetHelper = Mod.container.resolve("PresetHelper");
         const itemHelper = Mod.container.resolve("ItemHelper");
@@ -407,7 +390,7 @@ class Mod {
         const jsonUtil = Mod.container.resolve("JsonUtil");
         const vfs = Mod.container.resolve("VFS");
         const databaseServer = Mod.container.resolve("DatabaseServer");
-        const ModPath = preAkiModLoader.getModPath("[火神之心]VulcanCore");
+        const ModPath = preSptModLoader.getModPath("[火神之心]VulcanCore");
         const common = Mod.container.resolve("VulcanCommon");
         const repeatableQuestRewardGenerator = Mod.container.resolve("RepeatableQuestRewardGenerator");
         const lootGenerator = Mod.container.resolve("LootGenerator");
@@ -417,10 +400,12 @@ class Mod {
         const paymentService = Mod.container.resolve("PaymentService");
         const handbookHelper = Mod.container.resolve("HandbookHelper");
         const httpResponse = Mod.container.resolve("HttpResponseUtil");
+        common.Log("start");
         // Find item in inventory and remove it
         for (const itemToBeRemoved of sellRequest.items) {
             // Strip out whitespace
             const itemIdToFind = itemToBeRemoved.id.replace(/\s+/g, "");
+            common.Log("startfor");
             // Find item in player inventory, or show error to player if not found
             const matchingItemInInventory = profileWithItemsToSell.Inventory.items.find((x) => x._id === itemIdToFind);
             if (!matchingItemInInventory) {
@@ -429,22 +414,32 @@ class Mod {
                 httpResponse.appendErrorToOutput(output, errorMessage);
                 return;
             }
+            common.Log(0);
             logger.debug(`Selling: id: ${matchingItemInInventory._id} tpl: ${matchingItemInInventory._tpl}`);
+            common.Log(1);
             // THIS IS THE ONLY CHANGE WE DO IN THIS METHOD!
             if (sellRequest.tid === Traders_1.Traders.FENCE) {
+                common.Log("fence");
                 this.addToFence(profileWithItemsToSell.Inventory.items, matchingItemInInventory._id);
+                //fenceService.addItemsToFenceAssort(
+                //    profileWithItemsToSell.Inventory.items,
+                //    matchingItemInInventory,
+                //);
             }
             // THIS IS THE ONLY CHANGE WE DO IN THIS METHOD!
             // Also removes children
+            common.Log("remove item");
             inventoryHelper.removeItem(profileWithItemsToSell, itemToBeRemoved.id, sessionID, output);
         }
         // Give player money for sold item(s)
+        common.Log("givemoney");
+        //paymentService.giveProfileMoney(profileToReceiveMoney, sellRequest.price, sellRequest, output, sessionID);
         this.giveProfileMoney(profileToReceiveMoney, sellRequest.price, sellRequest, output, sessionID);
     }
     addToFence(itemCollection, itemId) {
         const logger = Mod.container.resolve("WinstonLogger");
         const importerUtil = Mod.container.resolve("ImporterUtil");
-        const preAkiModLoader = Mod.container.resolve("PreAkiModLoader");
+        const preSptModLoader = Mod.container.resolve("PreSptModLoader");
         const weightedRandomHelper = Mod.container.resolve("WeightedRandomHelper");
         const itemFilterService = Mod.container.resolve("ItemFilterService");
         const randomUtil = Mod.container.resolve("RandomUtil");
@@ -456,7 +451,7 @@ class Mod {
         const jsonUtil = Mod.container.resolve("JsonUtil");
         const vfs = Mod.container.resolve("VFS");
         const databaseServer = Mod.container.resolve("DatabaseServer");
-        const ModPath = preAkiModLoader.getModPath("[火神之心]VulcanCore");
+        const ModPath = preSptModLoader.getModPath("[火神之心]VulcanCore");
         const common = Mod.container.resolve("VulcanCommon");
         const repeatableQuestRewardGenerator = Mod.container.resolve("RepeatableQuestRewardGenerator");
         const lootGenerator = Mod.container.resolve("LootGenerator");
@@ -501,7 +496,7 @@ class Mod {
     giveProfileMoney(pmcData, amountToSend, request, output, sessionID) {
         const logger = Mod.container.resolve("WinstonLogger");
         const importerUtil = Mod.container.resolve("ImporterUtil");
-        const preAkiModLoader = Mod.container.resolve("PreAkiModLoader");
+        const preSptModLoader = Mod.container.resolve("PreSptModLoader");
         const weightedRandomHelper = Mod.container.resolve("WeightedRandomHelper");
         const itemFilterService = Mod.container.resolve("ItemFilterService");
         const randomUtil = Mod.container.resolve("RandomUtil");
@@ -513,7 +508,7 @@ class Mod {
         const jsonUtil = Mod.container.resolve("JsonUtil");
         const vfs = Mod.container.resolve("VFS");
         const databaseServer = Mod.container.resolve("DatabaseServer");
-        const ModPath = preAkiModLoader.getModPath("[火神之心]VulcanCore");
+        const ModPath = preSptModLoader.getModPath("[火神之心]VulcanCore");
         const common = Mod.container.resolve("VulcanCommon");
         const repeatableQuestRewardGenerator = Mod.container.resolve("RepeatableQuestRewardGenerator");
         const lootGenerator = Mod.container.resolve("LootGenerator");
@@ -522,7 +517,7 @@ class Mod {
         const paymentHelper = Mod.container.resolve("PaymentHelper");
         const paymentService = Mod.container.resolve("PaymentService");
         const handbookHelper = Mod.container.resolve("HandbookHelper");
-        //common.Log("覆写测试")
+        common.Log("覆写测试");
         //vfs.writeFile(`${ModPath}export.json`, JSON.stringify(request, null, 4))
         const trader = traderHelper.getTrader(request.tid, sessionID);
         const currency = paymentHelper.getCurrency(trader.currency);
@@ -531,6 +526,7 @@ class Mod {
         let skipSendingMoneyToStash = false;
         //common.Log("覆写测试")
         if (trader.customcurrency) {
+            common.Log("custom");
             const customcurrency = trader.customcurrency;
             var customcalcAmount = Math.floor(amountToSend / trader.customcurrencyMulti);
             const customamountToSend = Math.floor(amountToSend / trader.customcurrencyMulti);
@@ -586,6 +582,7 @@ class Mod {
             traderHelper.lvlUp(request.tid, pmcData);
         }
         else {
+            common.Log("vanilla");
             paymentService.giveProfileMoney(pmcData, amountToSend, request, output, sessionID);
         }
     }

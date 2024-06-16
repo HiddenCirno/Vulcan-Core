@@ -1,56 +1,56 @@
 import { inject, injectable, container, DependencyContainer, Lifecycle } from "tsyringe";
 import crypto from "crypto";
 import path from "node:path";
-import { ILogger } from "@spt-aki/models/spt/utils/ILogger";
-import { LogTextColor } from "@spt-aki/models/spt/logging/LogTextColor"
-import { DatabaseServer } from "@spt-aki/servers/DatabaseServer";
-import { ITemplateItem } from "@spt-aki/models/eft/common/tables/ITemplateItem";
+import { ILogger } from "@spt/models/spt/utils/ILogger";
+import { LogTextColor } from "@spt/models/spt/logging/LogTextColor"
+import { DatabaseServer } from "@spt/servers/DatabaseServer";
+import { ITemplateItem } from "@spt/models/eft/common/tables/ITemplateItem";
 import { ItemLocale, QuestLocale, TraderLocale } from "./CommonClass";
-import { VFS } from "@spt-aki/utils/VFS"
-import { JsonUtil } from "@spt-aki/utils/JsonUtil";
-import { ImporterUtil } from "@spt-aki/utils/ImporterUtil"
-import { ITrader } from "@spt-aki/models/eft/common/tables/ITrader";
-import { IPostDBLoadMod } from "@spt-aki/models/external/IPostDBLoadMod";
-import { IPreAkiLoadMod } from "@spt-aki/models/external/IPreAkiLoadMod";
-import { IPostAkiLoadMod } from "@spt-aki/models/external/IPostAkiLoadMod";
-import type { StaticRouterModService } from "@spt-aki/services/mod/staticRouter/StaticRouterModService";
-import { ImageRouter } from "@spt-aki/routers/ImageRouter";
-import { ConfigServer } from "@spt-aki/servers/ConfigServer";
-import { ConfigTypes } from "@spt-aki/models/enums/ConfigTypes";
-import { ITraderConfig, UpdateTime } from "@spt-aki/models/spt/config/ITraderConfig";
-import { IInventoryConfig } from "@spt-aki/models/spt/config/IInventoryConfig";
-import { IAirdropConfig } from "@spt-aki/models/spt/config/IAirdropConfig";
-import { IPmcConfig } from "@spt-aki/models/spt/config/IPmcConfig";
-import { IScavCaseConfig } from "@spt-aki/models/spt/config/IScavCaseConfig";
-import { IInsuranceConfig } from "@spt-aki/models/spt/config/IInsuranceConfig";
-import { IModLoader } from "@spt-aki/models/spt/mod/IModLoader";
-import { Traders } from "@spt-aki/models/enums/Traders";
-import { VulcanMap } from "./Map";
+import { VFS } from "@spt/utils/VFS"
+import { JsonUtil } from "@spt/utils/JsonUtil";
+import { ImporterUtil } from "@spt/utils/ImporterUtil"
+import { ITrader } from "@spt/models/eft/common/tables/ITrader";
+import { IPostDBLoadMod } from "@spt/models/external/IPostDBLoadMod";
+import { IPreSptLoadMod } from "@spt/models/external/IPreSptLoadMod";
+import { IPostSptLoadMod } from "@spt/models/external/IPostSptLoadMod";
+import type { StaticRouterModService } from "@spt/services/mod/staticRouter/StaticRouterModService";
+import { ImageRouter } from "@spt/routers/ImageRouter";
+import { ConfigServer } from "@spt/servers/ConfigServer";
+import { ConfigTypes } from "@spt/models/enums/ConfigTypes";
+import { ITraderConfig, UpdateTime } from "@spt/models/spt/config/ITraderConfig";
+import { IInventoryConfig } from "@spt/models/spt/config/IInventoryConfig";
+import { IAirdropConfig } from "@spt/models/spt/config/IAirdropConfig";
+import { IPmcConfig } from "@spt/models/spt/config/IPmcConfig";
+import { IScavCaseConfig } from "@spt/models/spt/config/IScavCaseConfig";
+import { IInsuranceConfig } from "@spt/models/spt/config/IInsuranceConfig";
+import { IModLoader } from "@spt/models/spt/mod/IModLoader";
+import { Traders } from "@spt/models/enums/Traders";
 import { Primitive, NestedObject } from "./CommonClass";
-import { BundleHashCacheService } from "@spt-aki/services/cache/BundleHashCacheService";
-import { BundleLoader, BundleInfo, BundleManifest } from "@spt-aki/loaders/BundleLoader";
-import { ProfileHelper } from "@spt-aki/helpers/ProfileHelper";
-import { LauncherCallbacks } from "@spt-aki/callbacks/LauncherCallbacks";
-import { PreAkiModLoader } from "@spt-aki/loaders/PreAkiModLoader";
-import { IRagfairConfig } from "@spt-aki/models/spt/config/IRagfairConfig";
-import { HandbookHelper } from "@spt-aki/helpers/HandbookHelper";
-import { ItemHelper } from "@spt-aki/helpers/ItemHelper";
-import { PresetHelper } from "@spt-aki/helpers/PresetHelper";
-import { IPreset } from "@spt-aki/models/eft/common/IGlobals";
-import { Item } from "@spt-aki/models/eft/common/tables/IItem";
-import { IQuestReward, IQuestRewards } from "@spt-aki/models/eft/common/tables/IQuest";
-import { BaseClasses } from "@spt-aki/models/enums/BaseClasses";
-import { Money } from "@spt-aki/models/enums/Money";
-import { QuestRewardType } from "@spt-aki/models/enums/QuestRewardType";
-import { IBaseQuestConfig, IQuestConfig, IRepeatableQuestConfig } from "@spt-aki/models/spt/config/IQuestConfig";
-import { ExhaustableArray } from "@spt-aki/models/spt/server/ExhaustableArray"
-import { ItemFilterService } from "@spt-aki/services/ItemFilterService";
-import { LocalisationService } from "@spt-aki/services/LocalisationService";
-import { SeasonalEventService } from "@spt-aki/services/SeasonalEventService";
-import { MathUtil } from "@spt-aki/utils/MathUtil";
-import { ObjectId } from "@spt-aki/utils/ObjectId";
-import { RandomUtil } from "@spt-aki/utils/RandomUtil";
-import { RepeatableQuestRewardGenerator } from "@spt-aki/generators/RepeatableQuestRewardGenerator";
+import { BundleHashCacheService } from "@spt/services/cache/BundleHashCacheService";
+import { BundleLoader, BundleInfo, BundleManifest } from "@spt/loaders/BundleLoader";
+import { ProfileHelper } from "@spt/helpers/ProfileHelper";
+import { LauncherCallbacks } from "@spt/callbacks/LauncherCallbacks";
+import { PreSptModLoader } from "@spt/loaders/PreSptModLoader";
+import { IRagfairConfig } from "@spt/models/spt/config/IRagfairConfig";
+import { HandbookHelper } from "@spt/helpers/HandbookHelper";
+import { ItemHelper } from "@spt/helpers/ItemHelper";
+import { PresetHelper } from "@spt/helpers/PresetHelper";
+import { IPreset } from "@spt/models/eft/common/IGlobals";
+import { Item } from "@spt/models/eft/common/tables/IItem";
+import { IQuestReward, IQuestRewards } from "@spt/models/eft/common/tables/IQuest";
+import { BaseClasses } from "@spt/models/enums/BaseClasses";
+import { Money } from "@spt/models/enums/Money";
+import { QuestRewardType } from "@spt/models/enums/QuestRewardType";
+import { IBaseQuestConfig, IQuestConfig, IRepeatableQuestConfig } from "@spt/models/spt/config/IQuestConfig";
+import { ExhaustableArray } from "@spt/models/spt/server/ExhaustableArray"
+import { ItemFilterService } from "@spt/services/ItemFilterService";
+import { LocalisationService } from "@spt/services/LocalisationService";
+import { SeasonalEventService } from "@spt/services/SeasonalEventService";
+import { MathUtil } from "@spt/utils/MathUtil";
+import { ObjectId } from "@spt/utils/ObjectId";
+import { RandomUtil } from "@spt/utils/RandomUtil";
+import { VulcanMap } from "./Map";
+import { RepeatableQuestRewardGenerator } from "@spt/generators/RepeatableQuestRewardGenerator";
 @injectable()
 
 
@@ -66,8 +66,8 @@ export class VulcanCommon {
         @inject("ConfigServer") protected configServer: ConfigServer,
         @inject("BundleHashCacheService") protected bundleHashCacheService: BundleHashCacheService,
         @inject("BundleLoader") protected bundleLoader: BundleLoader,
-        @inject("VulcanMap") protected map: VulcanMap,
         @inject("RandomUtil") protected randomUtil: RandomUtil,
+        @inject("VulcanMap") protected map: VulcanMap,
         @inject("MathUtil") protected mathUtil: MathUtil,
         @inject("ItemHelper") protected itemHelper: ItemHelper,
         @inject("PresetHelper") protected presetHelper: PresetHelper,
@@ -340,16 +340,22 @@ export class VulcanCommon {
             return this.databaseServer.getTables().locales.global[lang][`${questid} name`];
         }
     }
+    //更新至390
+    //它咋被拆了啊= =
     public addStaticLoot(id, target) {
-        for (let loot in this.databaseServer.getTables().loot.staticLoot) {
-            var LootArr = this.databaseServer.getTables().loot.staticLoot[loot].itemDistribution
-            for (var i = 0; i < LootArr.length; i++) {
-                if (LootArr[i].tpl == target) {
-                    LootArr.push({
-                        "tpl": id,
-                        "relativeProbability": LootArr[i].relativeProbability / 10
-                    })
-                    break;
+        for (let map in this.databaseServer.getTables().locations) {
+            if (this.databaseServer.getTables().locations[map].staticLoot) {
+                for (let loot in this.databaseServer.getTables().locations[map].staticLoot) {
+                    var LootArr = this.databaseServer.getTables().locations[map].staticLoot[loot].itemDistribution
+                    for (var i = 0; i < LootArr.length; i++) {
+                        if (LootArr[i].tpl == target) {
+                            LootArr.push({
+                                "tpl": id,
+                                "relativeProbability": LootArr[i].relativeProbability / 10
+                            })
+                            break;
+                        }
+                    }
                 }
             }
         }
@@ -360,21 +366,29 @@ export class VulcanCommon {
                 for (var i = 0; i < this.databaseServer.getTables().locations[map].looseLoot.spawnpoints.length; i++) {
                     for (var j = 0; j < this.databaseServer.getTables().locations[map].looseLoot.spawnpoints[i].template.Items.length; j++) {
                         if (this.databaseServer.getTables().locations[map].looseLoot.spawnpoints[i].template.Items[j]._tpl == target) {
-                            var ID = this.generateHash(id)
-                            var relative = this.databaseServer.getTables().locations[map].looseLoot.spawnpoints[i].itemDistribution.find(item => item.composedKey.key == this.databaseServer.getTables().locations[map].looseLoot.spawnpoints[i].template.Items[j]._id).relativeProbability
-                            //CustomAccess(relative)
-                            this.databaseServer.getTables().locations[map].looseLoot.spawnpoints[i].template.Items.push({
-                                "_id": ID,
-                                "_tpl": id
+                            try {
+                                var ID = this.generateHash(id)
+                                var relative = this.databaseServer.getTables().locations[map].looseLoot.spawnpoints[i].itemDistribution.find(item => item.composedKey.key == this.databaseServer.getTables().locations[map].looseLoot.spawnpoints[i].template.Items[j]._id)?.relativeProbability
+                                //CustomAccess(relative)
+                                if (relative) {
+                                    this.databaseServer.getTables().locations[map].looseLoot.spawnpoints[i].template.Items.push({
+                                        "_id": ID,
+                                        "_tpl": id
 
-                            })
-                            this.databaseServer.getTables().locations[map].looseLoot.spawnpoints[i].itemDistribution.push({
-                                "composedKey": {
-                                    "key": ID
-                                },
-                                "relativeProbability": relative / 10
+                                    })
+                                    this.databaseServer.getTables().locations[map].looseLoot.spawnpoints[i].itemDistribution.push({
+                                        "composedKey": {
+                                            "key": ID
+                                        },
+                                        "relativeProbability": relative / 10
+                                    }
+                                    )
+                                }
                             }
-                            )
+                            catch (err) {
+                                this.Error(`警告, 世界生成出错! 可能导致错误的位置为${map}-${id}`)
+                            }
+
                         }
                     }
                 }
@@ -824,7 +838,7 @@ export class VulcanCommon {
         this.databaseServer.getTables().locales.global["ch"][TraderID + " Description"] = TraderBase.description
         Traders[trader] = trader;
         const InsuranceConfig = this.configServer.getConfig<IInsuranceConfig>(ConfigTypes.INSURANCE);
-        InsuranceConfig.insuranceMultiplier[TraderID] = InsurantMuti
+        //InsuranceConfig.insuranceMultiplier[TraderID] = InsurantMuti
         InsuranceConfig.returnChancePercent[TraderID] = InsurantChance
         //VFS.writeFile(`${ModPath}db/insurance.json`, JSON.stringify(InsuranceConfig, null, 4))
         const traderRefreshRecord = { _name: TraderBase.name, traderId: trader, seconds: { min: FlashTime, max: FlashTime } }
@@ -1481,7 +1495,7 @@ export class VulcanCommon {
             if (source.hasOwnProperty(key)) {
                 const sourceValue = source[key];
                 const targetValue = target[key];
-    
+
                 if (Array.isArray(sourceValue)) {
                     // If the value is an array, assign the array
                     target[key] = sourceValue;
@@ -1703,7 +1717,7 @@ export class VulcanCommon {
         this.databaseServer.getTables().locales.global["ch"][TraderID + " Description"] = `${TraderBase.description}<color=#1049f8><b>\n此商人由RITC创建。\n扩展包：${info.Name}</b></color>`
         Traders[trader] = trader;
         const InsuranceConfig = this.configServer.getConfig<IInsuranceConfig>(ConfigTypes.INSURANCE);
-        InsuranceConfig.insuranceMultiplier[TraderID] = InsurantMuti
+        //InsuranceConfig.insuranceMultiplier[TraderID] = InsurantMuti
         InsuranceConfig.returnChancePercent[TraderID] = InsurantChance
         //VFS.writeFile(`${ModPath}db/insurance.json`, JSON.stringify(InsuranceConfig, null, 4))
         const traderRefreshRecord = { _name: TraderBase.name, traderId: trader, seconds: { min: FlashTime, max: FlashTime } }
@@ -3310,41 +3324,41 @@ export class VulcanCommon {
         }
     }
     public getGiftItemByType(itemdata, count) {
-        if(Array.isArray(itemdata)){
+        if (Array.isArray(itemdata)) {
             //this.Log("数组")
             //this.Log(JSON.stringify(itemdata, null, 4))
             var array = []
-            for(var i = 0; i < itemdata.length; i++){
+            for (var i = 0; i < itemdata.length; i++) {
                 switch (itemdata[i].type) {
                     case "CustomPreset": {
                         //this.Log("武器")
                         //this.Log(itemdata[i].item)
                         array.push(this.convertCustomPreset(itemdata[i].item, i))
                     }
-                    break;
+                        break;
                     case "VanillaPreset": {
                         //this.Log("原版武器")
                         //this.Log(itemdata[i].item)
                         array.push(this.convertVanillaPreset(itemdata[i].item, i))
                     }
-                    break;
+                        break;
                     case "Item": {
                         //this.Log("物品")
                         //this.Log(itemdata[i].itemid)
                         array.push(this.convertItemList(itemdata[i], i))
                     }
-                    break;
+                        break;
                     case "AmmoBox": {
                         //this.Log("弹药盒")
                         //this.Log(itemdata[i].itemid)
                         array.push(this.convertAmmoBox(itemdata[i].itemid, i))
                     }
-                    break;
+                        break;
                 }
             }
             return array
         }
-        else{
+        else {
             switch (itemdata.type) {
                 case "CustomPreset": {
                     return this.convertCustomPreset(itemdata.item, count)
@@ -3363,7 +3377,7 @@ export class VulcanCommon {
                 }
             }
         }
-        
+
     }
     public drawFromArray(array) {
         if (array.length === 0) {

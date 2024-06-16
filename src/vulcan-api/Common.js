@@ -30,7 +30,6 @@ const ImageRouter_1 = require("C:/snapshot/project/obj/routers/ImageRouter");
 const ConfigServer_1 = require("C:/snapshot/project/obj/servers/ConfigServer");
 const ConfigTypes_1 = require("C:/snapshot/project/obj/models/enums/ConfigTypes");
 const Traders_1 = require("C:/snapshot/project/obj/models/enums/Traders");
-const Map_1 = require("./Map");
 const BundleHashCacheService_1 = require("C:/snapshot/project/obj/services/cache/BundleHashCacheService");
 const BundleLoader_1 = require("C:/snapshot/project/obj/loaders/BundleLoader");
 const HandbookHelper_1 = require("C:/snapshot/project/obj/helpers/HandbookHelper");
@@ -42,6 +41,7 @@ const SeasonalEventService_1 = require("C:/snapshot/project/obj/services/Seasona
 const MathUtil_1 = require("C:/snapshot/project/obj/utils/MathUtil");
 const ObjectId_1 = require("C:/snapshot/project/obj/utils/ObjectId");
 const RandomUtil_1 = require("C:/snapshot/project/obj/utils/RandomUtil");
+const Map_1 = require("./Map");
 const RepeatableQuestRewardGenerator_1 = require("C:/snapshot/project/obj/generators/RepeatableQuestRewardGenerator");
 let VulcanCommon = class VulcanCommon {
     logger;
@@ -53,8 +53,8 @@ let VulcanCommon = class VulcanCommon {
     configServer;
     bundleHashCacheService;
     bundleLoader;
-    map;
     randomUtil;
+    map;
     mathUtil;
     itemHelper;
     presetHelper;
@@ -64,7 +64,7 @@ let VulcanCommon = class VulcanCommon {
     itemFilterService;
     seasonalEventService;
     repeatableQuestRewardGenerator;
-    constructor(logger, databaseServer, vfs, jsonUtil, importerUtil, imageRouter, configServer, bundleHashCacheService, bundleLoader, map, randomUtil, mathUtil, itemHelper, presetHelper, handbookHelper, localisationService, objectId, itemFilterService, seasonalEventService, repeatableQuestRewardGenerator) {
+    constructor(logger, databaseServer, vfs, jsonUtil, importerUtil, imageRouter, configServer, bundleHashCacheService, bundleLoader, randomUtil, map, mathUtil, itemHelper, presetHelper, handbookHelper, localisationService, objectId, itemFilterService, seasonalEventService, repeatableQuestRewardGenerator) {
         this.logger = logger;
         this.databaseServer = databaseServer;
         this.vfs = vfs;
@@ -74,8 +74,8 @@ let VulcanCommon = class VulcanCommon {
         this.configServer = configServer;
         this.bundleHashCacheService = bundleHashCacheService;
         this.bundleLoader = bundleLoader;
-        this.map = map;
         this.randomUtil = randomUtil;
+        this.map = map;
         this.mathUtil = mathUtil;
         this.itemHelper = itemHelper;
         this.presetHelper = presetHelper;
@@ -346,16 +346,22 @@ let VulcanCommon = class VulcanCommon {
             return this.databaseServer.getTables().locales.global[lang][`${questid} name`];
         }
     }
+    //更新至390
+    //它咋被拆了啊= =
     addStaticLoot(id, target) {
-        for (let loot in this.databaseServer.getTables().loot.staticLoot) {
-            var LootArr = this.databaseServer.getTables().loot.staticLoot[loot].itemDistribution;
-            for (var i = 0; i < LootArr.length; i++) {
-                if (LootArr[i].tpl == target) {
-                    LootArr.push({
-                        "tpl": id,
-                        "relativeProbability": LootArr[i].relativeProbability / 10
-                    });
-                    break;
+        for (let map in this.databaseServer.getTables().locations) {
+            if (this.databaseServer.getTables().locations[map].staticLoot) {
+                for (let loot in this.databaseServer.getTables().locations[map].staticLoot) {
+                    var LootArr = this.databaseServer.getTables().locations[map].staticLoot[loot].itemDistribution;
+                    for (var i = 0; i < LootArr.length; i++) {
+                        if (LootArr[i].tpl == target) {
+                            LootArr.push({
+                                "tpl": id,
+                                "relativeProbability": LootArr[i].relativeProbability / 10
+                            });
+                            break;
+                        }
+                    }
                 }
             }
         }
@@ -366,19 +372,26 @@ let VulcanCommon = class VulcanCommon {
                 for (var i = 0; i < this.databaseServer.getTables().locations[map].looseLoot.spawnpoints.length; i++) {
                     for (var j = 0; j < this.databaseServer.getTables().locations[map].looseLoot.spawnpoints[i].template.Items.length; j++) {
                         if (this.databaseServer.getTables().locations[map].looseLoot.spawnpoints[i].template.Items[j]._tpl == target) {
-                            var ID = this.generateHash(id);
-                            var relative = this.databaseServer.getTables().locations[map].looseLoot.spawnpoints[i].itemDistribution.find(item => item.composedKey.key == this.databaseServer.getTables().locations[map].looseLoot.spawnpoints[i].template.Items[j]._id).relativeProbability;
-                            //CustomAccess(relative)
-                            this.databaseServer.getTables().locations[map].looseLoot.spawnpoints[i].template.Items.push({
-                                "_id": ID,
-                                "_tpl": id
-                            });
-                            this.databaseServer.getTables().locations[map].looseLoot.spawnpoints[i].itemDistribution.push({
-                                "composedKey": {
-                                    "key": ID
-                                },
-                                "relativeProbability": relative / 10
-                            });
+                            try {
+                                var ID = this.generateHash(id);
+                                var relative = this.databaseServer.getTables().locations[map].looseLoot.spawnpoints[i].itemDistribution.find(item => item.composedKey.key == this.databaseServer.getTables().locations[map].looseLoot.spawnpoints[i].template.Items[j]._id)?.relativeProbability;
+                                //CustomAccess(relative)
+                                if (relative) {
+                                    this.databaseServer.getTables().locations[map].looseLoot.spawnpoints[i].template.Items.push({
+                                        "_id": ID,
+                                        "_tpl": id
+                                    });
+                                    this.databaseServer.getTables().locations[map].looseLoot.spawnpoints[i].itemDistribution.push({
+                                        "composedKey": {
+                                            "key": ID
+                                        },
+                                        "relativeProbability": relative / 10
+                                    });
+                                }
+                            }
+                            catch (err) {
+                                this.Error(`警告, 世界生成出错! 可能导致错误的位置为${map}-${id}`);
+                            }
                         }
                     }
                 }
@@ -828,7 +841,7 @@ let VulcanCommon = class VulcanCommon {
         this.databaseServer.getTables().locales.global["ch"][TraderID + " Description"] = TraderBase.description;
         Traders_1.Traders[trader] = trader;
         const InsuranceConfig = this.configServer.getConfig(ConfigTypes_1.ConfigTypes.INSURANCE);
-        InsuranceConfig.insuranceMultiplier[TraderID] = InsurantMuti;
+        //InsuranceConfig.insuranceMultiplier[TraderID] = InsurantMuti
         InsuranceConfig.returnChancePercent[TraderID] = InsurantChance;
         //VFS.writeFile(`${ModPath}db/insurance.json`, JSON.stringify(InsuranceConfig, null, 4))
         const traderRefreshRecord = { _name: TraderBase.name, traderId: trader, seconds: { min: FlashTime, max: FlashTime } };
@@ -1717,7 +1730,7 @@ let VulcanCommon = class VulcanCommon {
         this.databaseServer.getTables().locales.global["ch"][TraderID + " Description"] = `${TraderBase.description}<color=#1049f8><b>\n此商人由RITC创建。\n扩展包：${info.Name}</b></color>`;
         Traders_1.Traders[trader] = trader;
         const InsuranceConfig = this.configServer.getConfig(ConfigTypes_1.ConfigTypes.INSURANCE);
-        InsuranceConfig.insuranceMultiplier[TraderID] = InsurantMuti;
+        //InsuranceConfig.insuranceMultiplier[TraderID] = InsurantMuti
         InsuranceConfig.returnChancePercent[TraderID] = InsurantChance;
         //VFS.writeFile(`${ModPath}db/insurance.json`, JSON.stringify(InsuranceConfig, null, 4))
         const traderRefreshRecord = { _name: TraderBase.name, traderId: trader, seconds: { min: FlashTime, max: FlashTime } };
@@ -3451,8 +3464,8 @@ exports.VulcanCommon = VulcanCommon = __decorate([
     __param(6, (0, tsyringe_1.inject)("ConfigServer")),
     __param(7, (0, tsyringe_1.inject)("BundleHashCacheService")),
     __param(8, (0, tsyringe_1.inject)("BundleLoader")),
-    __param(9, (0, tsyringe_1.inject)("VulcanMap")),
-    __param(10, (0, tsyringe_1.inject)("RandomUtil")),
+    __param(9, (0, tsyringe_1.inject)("RandomUtil")),
+    __param(10, (0, tsyringe_1.inject)("VulcanMap")),
     __param(11, (0, tsyringe_1.inject)("MathUtil")),
     __param(12, (0, tsyringe_1.inject)("ItemHelper")),
     __param(13, (0, tsyringe_1.inject)("PresetHelper")),
@@ -3462,6 +3475,6 @@ exports.VulcanCommon = VulcanCommon = __decorate([
     __param(17, (0, tsyringe_1.inject)("ItemFilterService")),
     __param(18, (0, tsyringe_1.inject)("SeasonalEventService")),
     __param(19, (0, tsyringe_1.inject)("RepeatableQuestRewardGenerator")),
-    __metadata("design:paramtypes", [typeof (_a = typeof ILogger_1.ILogger !== "undefined" && ILogger_1.ILogger) === "function" ? _a : Object, typeof (_b = typeof DatabaseServer_1.DatabaseServer !== "undefined" && DatabaseServer_1.DatabaseServer) === "function" ? _b : Object, typeof (_c = typeof VFS_1.VFS !== "undefined" && VFS_1.VFS) === "function" ? _c : Object, typeof (_d = typeof JsonUtil_1.JsonUtil !== "undefined" && JsonUtil_1.JsonUtil) === "function" ? _d : Object, typeof (_e = typeof ImporterUtil_1.ImporterUtil !== "undefined" && ImporterUtil_1.ImporterUtil) === "function" ? _e : Object, typeof (_f = typeof ImageRouter_1.ImageRouter !== "undefined" && ImageRouter_1.ImageRouter) === "function" ? _f : Object, typeof (_g = typeof ConfigServer_1.ConfigServer !== "undefined" && ConfigServer_1.ConfigServer) === "function" ? _g : Object, typeof (_h = typeof BundleHashCacheService_1.BundleHashCacheService !== "undefined" && BundleHashCacheService_1.BundleHashCacheService) === "function" ? _h : Object, typeof (_j = typeof BundleLoader_1.BundleLoader !== "undefined" && BundleLoader_1.BundleLoader) === "function" ? _j : Object, typeof (_k = typeof Map_1.VulcanMap !== "undefined" && Map_1.VulcanMap) === "function" ? _k : Object, typeof (_l = typeof RandomUtil_1.RandomUtil !== "undefined" && RandomUtil_1.RandomUtil) === "function" ? _l : Object, typeof (_m = typeof MathUtil_1.MathUtil !== "undefined" && MathUtil_1.MathUtil) === "function" ? _m : Object, typeof (_o = typeof ItemHelper_1.ItemHelper !== "undefined" && ItemHelper_1.ItemHelper) === "function" ? _o : Object, typeof (_p = typeof PresetHelper_1.PresetHelper !== "undefined" && PresetHelper_1.PresetHelper) === "function" ? _p : Object, typeof (_q = typeof HandbookHelper_1.HandbookHelper !== "undefined" && HandbookHelper_1.HandbookHelper) === "function" ? _q : Object, typeof (_r = typeof LocalisationService_1.LocalisationService !== "undefined" && LocalisationService_1.LocalisationService) === "function" ? _r : Object, typeof (_s = typeof ObjectId_1.ObjectId !== "undefined" && ObjectId_1.ObjectId) === "function" ? _s : Object, typeof (_t = typeof ItemFilterService_1.ItemFilterService !== "undefined" && ItemFilterService_1.ItemFilterService) === "function" ? _t : Object, typeof (_u = typeof SeasonalEventService_1.SeasonalEventService !== "undefined" && SeasonalEventService_1.SeasonalEventService) === "function" ? _u : Object, typeof (_v = typeof RepeatableQuestRewardGenerator_1.RepeatableQuestRewardGenerator !== "undefined" && RepeatableQuestRewardGenerator_1.RepeatableQuestRewardGenerator) === "function" ? _v : Object])
+    __metadata("design:paramtypes", [typeof (_a = typeof ILogger_1.ILogger !== "undefined" && ILogger_1.ILogger) === "function" ? _a : Object, typeof (_b = typeof DatabaseServer_1.DatabaseServer !== "undefined" && DatabaseServer_1.DatabaseServer) === "function" ? _b : Object, typeof (_c = typeof VFS_1.VFS !== "undefined" && VFS_1.VFS) === "function" ? _c : Object, typeof (_d = typeof JsonUtil_1.JsonUtil !== "undefined" && JsonUtil_1.JsonUtil) === "function" ? _d : Object, typeof (_e = typeof ImporterUtil_1.ImporterUtil !== "undefined" && ImporterUtil_1.ImporterUtil) === "function" ? _e : Object, typeof (_f = typeof ImageRouter_1.ImageRouter !== "undefined" && ImageRouter_1.ImageRouter) === "function" ? _f : Object, typeof (_g = typeof ConfigServer_1.ConfigServer !== "undefined" && ConfigServer_1.ConfigServer) === "function" ? _g : Object, typeof (_h = typeof BundleHashCacheService_1.BundleHashCacheService !== "undefined" && BundleHashCacheService_1.BundleHashCacheService) === "function" ? _h : Object, typeof (_j = typeof BundleLoader_1.BundleLoader !== "undefined" && BundleLoader_1.BundleLoader) === "function" ? _j : Object, typeof (_k = typeof RandomUtil_1.RandomUtil !== "undefined" && RandomUtil_1.RandomUtil) === "function" ? _k : Object, typeof (_l = typeof Map_1.VulcanMap !== "undefined" && Map_1.VulcanMap) === "function" ? _l : Object, typeof (_m = typeof MathUtil_1.MathUtil !== "undefined" && MathUtil_1.MathUtil) === "function" ? _m : Object, typeof (_o = typeof ItemHelper_1.ItemHelper !== "undefined" && ItemHelper_1.ItemHelper) === "function" ? _o : Object, typeof (_p = typeof PresetHelper_1.PresetHelper !== "undefined" && PresetHelper_1.PresetHelper) === "function" ? _p : Object, typeof (_q = typeof HandbookHelper_1.HandbookHelper !== "undefined" && HandbookHelper_1.HandbookHelper) === "function" ? _q : Object, typeof (_r = typeof LocalisationService_1.LocalisationService !== "undefined" && LocalisationService_1.LocalisationService) === "function" ? _r : Object, typeof (_s = typeof ObjectId_1.ObjectId !== "undefined" && ObjectId_1.ObjectId) === "function" ? _s : Object, typeof (_t = typeof ItemFilterService_1.ItemFilterService !== "undefined" && ItemFilterService_1.ItemFilterService) === "function" ? _t : Object, typeof (_u = typeof SeasonalEventService_1.SeasonalEventService !== "undefined" && SeasonalEventService_1.SeasonalEventService) === "function" ? _u : Object, typeof (_v = typeof RepeatableQuestRewardGenerator_1.RepeatableQuestRewardGenerator !== "undefined" && RepeatableQuestRewardGenerator_1.RepeatableQuestRewardGenerator) === "function" ? _v : Object])
 ], VulcanCommon);
 //# sourceMappingURL=Common.js.map

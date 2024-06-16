@@ -1,91 +1,73 @@
 import { inject, injectable, container, DependencyContainer, Lifecycle } from "tsyringe";
 import crypto from "crypto";
-import { PostDBModLoader } from "@spt-aki/loaders/PostDBModLoader";
-import { IPostDBLoadMod } from "@spt-aki/models/external/IPostDBLoadMod";
-import { DatabaseServer } from "@spt-aki/servers/DatabaseServer";
-import { IPreAkiLoadMod } from "@spt-aki/models/external/IPreAkiLoadMod";
-import { DialogueHelper } from "@spt-aki/helpers/DialogueHelper";
-import { IPostAkiLoadMod } from "@spt-aki/models/external/IPostAkiLoadMod";
-import type { StaticRouterModService } from "@spt-aki/services/mod/staticRouter/StaticRouterModService";
-import { ILogger } from "@spt-aki/models/spt/utils/ILogger";
-import { ImageRouter } from "@spt-aki/routers/ImageRouter";
-import { ConfigServer } from "@spt-aki/servers/ConfigServer";
-import { ConfigTypes } from "@spt-aki/models/enums/ConfigTypes";
-import { ITraderConfig, UpdateTime } from "@spt-aki/models/spt/config/ITraderConfig";
-import { IModLoader } from "@spt-aki/models/spt/mod/IModLoader";
-import { PreAkiModLoader } from "@spt-aki/loaders/PreAkiModLoader";
-import { JsonUtil } from "@spt-aki/utils/JsonUtil";
-import { Traders } from "@spt-aki/models/enums/Traders";
-import { QuestStatus } from "@spt-aki/models/enums/QuestStatus";
-import { MessageType } from "@spt-aki/models/enums/MessageType";
-import { HashUtil } from "@spt-aki/utils/HashUtil";
-import { VFS } from "@spt-aki/utils/VFS"
-import { NotificationSendHelper } from "@spt-aki/helpers/NotificationSendHelper";
-import { NotifierHelper } from "@spt-aki/helpers/NotifierHelper";
-import { QuestHelper } from "@spt-aki/helpers/QuestHelper";
-import { InventoryHelper } from "@spt-aki/helpers/InventoryHelper";
-import { ItemHelper } from "@spt-aki/helpers/ItemHelper";
-import { Item } from "@spt-aki/models/eft/common/tables/IItem";
-import { ImporterUtil } from "@spt-aki/utils/ImporterUtil"
-import { BundleLoader } from "@spt-aki/loaders/BundleLoader";
-import { VulcanConsole } from "./vulcan-api/console";
-import { VulcanItemEditor } from "./vulcan-api/itemedit";
-import { VulcanHandBookHelper } from "./vulcan-api/handbook";
-import { VulcanLocaleHelper } from "./vulcan-api/localehelper";
-import { VulcanMiscMethod } from "./vulcan-api/miscmethod";
+import { PostDBModLoader } from "@spt/loaders/PostDBModLoader";
+import { IPostDBLoadMod } from "@spt/models/external/IPostDBLoadMod";
+import { DatabaseServer } from "@spt/servers/DatabaseServer";
+import { IPreSptLoadMod } from "@spt/models/external/IPreSptLoadMod";
+import { DialogueHelper } from "@spt/helpers/DialogueHelper";
+import { IPostSptLoadMod } from "@spt/models/external/IPostSptLoadMod";
+import type { StaticRouterModService } from "@spt/services/mod/staticRouter/StaticRouterModService";
+import { ILogger } from "@spt/models/spt/utils/ILogger";
+import { ImageRouter } from "@spt/routers/ImageRouter";
+import { ConfigServer } from "@spt/servers/ConfigServer";
+import { ConfigTypes } from "@spt/models/enums/ConfigTypes";
+import { ITraderConfig, UpdateTime } from "@spt/models/spt/config/ITraderConfig";
+import { IModLoader } from "@spt/models/spt/mod/IModLoader";
+import { PreSptModLoader } from "@spt/loaders/PreSptModLoader";
+import { JsonUtil } from "@spt/utils/JsonUtil";
+import { Traders } from "@spt/models/enums/Traders";
+import { QuestStatus } from "@spt/models/enums/QuestStatus";
+import { MessageType } from "@spt/models/enums/MessageType";
+import { HashUtil } from "@spt/utils/HashUtil";
+import { VFS } from "@spt/utils/VFS"
+import { NotificationSendHelper } from "@spt/helpers/NotificationSendHelper";
+import { NotifierHelper } from "@spt/helpers/NotifierHelper";
+import { QuestHelper } from "@spt/helpers/QuestHelper";
+import { InventoryHelper } from "@spt/helpers/InventoryHelper";
+import { ItemHelper } from "@spt/helpers/ItemHelper";
+import { Item } from "@spt/models/eft/common/tables/IItem";
+import { ImporterUtil } from "@spt/utils/ImporterUtil"
+import { BundleLoader } from "@spt/loaders/BundleLoader";
 //import { TraderAppMerchandise, TraderOperateJsonOdj } from "./vulcan-api/merchantOperate";
-import { TraderAppMerchandise } from "./vulcan-api/merchantOperate";
-import { VulcanQuestHelper } from "./vulcan-api/questhelper";
-import { VulcanTraderHelper } from "./vulcan-api/traderhelper";
-import { IQuestTypePool } from "@spt-aki/models/spt/repeatable/IQuestTypePool";
-import { VulcanDatabaseHelper } from "./vulcan-api/dbhelper";
 import { VulcanCommon } from "./vulcan-api/Common";
-import { repeatableQuestGenerator } from "./vulcan-api/questGenerator"
+import { RepeatableQuestRewardGenerator } from "@spt/generators/RepeatableQuestRewardGenerator";
+import { LootGenerator } from "@spt/generators/LootGenerator";
+import { RepeatableQuestGenerator } from "@spt/generators/RepeatableQuestGenerator";
+import { IQuestReward, IQuestRewards } from "@spt/models/eft/common/tables/IQuest";
+import { IBaseQuestConfig, IQuestConfig, IRepeatableQuestConfig } from "@spt/models/spt/config/IQuestConfig";
+import { IPreset } from "@spt/models/eft/common/IGlobals";
+import { BaseClasses } from "@spt/models/enums/BaseClasses";
+import { QuestRewardType } from "@spt/models/enums/QuestRewardType";
+import { ExhaustableArray } from "@spt/models/spt/server/ExhaustableArray"
+import { IRepeatableQuest } from "@spt/models/eft/common/tables/IRepeatableQuests";
+import { TraderInfo } from "@spt/models/eft/common/tables/IBotBase";
+import { IQuestTypePool } from "@spt/models/spt/repeatable/IQuestTypePool";
+import { InventoryController } from "@spt/controllers/InventoryController";
+import { IPmcData } from "@spt/models/eft/common/IPmcData";
+import { IOpenRandomLootContainerRequestData } from "@spt/models/eft/inventory/IOpenRandomLootContainerRequestData";
+import { IItemEventRouterResponse } from "@spt/models/eft/itemEvent/IItemEventRouterResponse";
+import { IAddItemsDirectRequest } from "@spt/models/eft/inventory/IAddItemsDirectRequest";
+import { PaymentHelper } from "@spt/helpers/PaymentHelper";
+import { HandbookHelper } from "@spt/helpers/HandbookHelper";
+import { TradeHelper } from "@spt/helpers/TradeHelper";
+import { Money } from "@spt/models/enums/Money";
 import { VulcanMap } from "./vulcan-api/Map";
-import { RepeatableQuestRewardGenerator } from "@spt-aki/generators/RepeatableQuestRewardGenerator";
-import { LootGenerator } from "@spt-aki/generators/LootGenerator";
-import { RepeatableQuestGenerator } from "@spt-aki/generators/RepeatableQuestGenerator";
-import { IQuestReward, IQuestRewards } from "@spt-aki/models/eft/common/tables/IQuest";
-import { IBaseQuestConfig, IQuestConfig, IRepeatableQuestConfig } from "@spt-aki/models/spt/config/IQuestConfig";
-import { IPreset } from "@spt-aki/models/eft/common/IGlobals";
-import { BaseClasses } from "@spt-aki/models/enums/BaseClasses";
-import { QuestRewardType } from "@spt-aki/models/enums/QuestRewardType";
-import { ExhaustableArray } from "@spt-aki/models/spt/server/ExhaustableArray"
-import { IRepeatableQuest } from "@spt-aki/models/eft/common/tables/IRepeatableQuests";
-import { TraderInfo } from "@spt-aki/models/eft/common/tables/IBotBase";
-import { InventoryController } from "@spt-aki/controllers/InventoryController";
-import { IPmcData } from "@spt-aki/models/eft/common/IPmcData";
-import { IOpenRandomLootContainerRequestData } from "@spt-aki/models/eft/inventory/IOpenRandomLootContainerRequestData";
-import { IItemEventRouterResponse } from "@spt-aki/models/eft/itemEvent/IItemEventRouterResponse";
-import { IAddItemsDirectRequest } from "@spt-aki/models/eft/inventory/IAddItemsDirectRequest";
-import { PaymentHelper } from "@spt-aki/helpers/PaymentHelper";
-import { HandbookHelper } from "@spt-aki/helpers/HandbookHelper";
-import { Money } from "@spt-aki/models/enums/Money";
-import { IProcessSellTradeRequestData } from "@spt-aki/models/eft/trade/IProcessSellTradeRequestData";
-import { PaymentService } from "@spt-aki/services/PaymentService";
-import { FenceService } from "@spt-aki/services/FenceService";
-import { HttpResponseUtil } from "@spt-aki/utils/HttpResponseUtil";
+import { IProcessSellTradeRequestData } from "@spt/models/eft/trade/IProcessSellTradeRequestData";
+import { PaymentService } from "@spt/services/PaymentService";
+import { FenceService } from "@spt/services/FenceService";
+import { HttpResponseUtil } from "@spt/utils/HttpResponseUtil";
 //const addTrader = new TraderOperateJsonOdj
 //
-class Mod implements IPreAkiLoadMod {
+class Mod implements IPreSptLoadMod {
     private static container: DependencyContainer;
-    public preAkiLoad(container: DependencyContainer): void {
+    public preSptLoad(container: DependencyContainer): void {
         Mod.container = container;
-        container.register<VulcanConsole>("VulcanConsole", VulcanConsole, { lifecycle: Lifecycle.Singleton });
-        container.register<VulcanItemEditor>("VulcanItemEditor", VulcanItemEditor, { lifecycle: Lifecycle.Singleton });
-        container.register<VulcanHandBookHelper>("VulcanHandBookHelper", VulcanHandBookHelper, { lifecycle: Lifecycle.Singleton });
-        container.register<VulcanLocaleHelper>("VulcanLocaleHelper", VulcanLocaleHelper, { lifecycle: Lifecycle.Singleton });
-        container.register<TraderAppMerchandise>("TraderAppMerchandise", TraderAppMerchandise, { lifecycle: Lifecycle.Singleton });
-        container.register<VulcanQuestHelper>("VulcanQuestHelper", VulcanQuestHelper, { lifecycle: Lifecycle.Singleton });
-        container.register<VulcanMiscMethod>("VulcanMiscMethod", VulcanMiscMethod, { lifecycle: Lifecycle.Singleton });
-        container.register<VulcanTraderHelper>("VulcanTraderHelper", VulcanTraderHelper, { lifecycle: Lifecycle.Singleton });
-        container.register<VulcanDatabaseHelper>("VulcanDatabaseHelper", VulcanDatabaseHelper, { lifecycle: Lifecycle.Singleton });
-        container.register<VulcanCommon>("VulcanCommon", VulcanCommon, { lifecycle: Lifecycle.Singleton });
         container.register<VulcanMap>("VulcanMap", VulcanMap, { lifecycle: Lifecycle.Singleton });
+        container.register<VulcanCommon>("VulcanCommon", VulcanCommon, { lifecycle: Lifecycle.Singleton });
         //const repeatableQRG = Mod.container.resolve<repeatableQuestGenerator>("repeatableQuestGeneragor")
         // Wait until LauncherController gets resolved by the server and run code afterwards to replace 
         // the login() function with the one below called 'replacementFunction()
-        
+
         //奖励生成扩展
         container.afterResolution("RepeatableQuestRewardGenerator", (_t, result: RepeatableQuestRewardGenerator) => {
             //将原逻辑复制保留
@@ -141,11 +123,11 @@ class Mod implements IPreAkiLoadMod {
             //result.giveProfileMoney = this.giveProfileMoney
         }, { frequency: "Always" });
 
-        
 
-        //addTrader.addTraderPreAkiload(inFuncContainer,商人名字)
+
+        //addTrader.addTraderPreSptload(inFuncContainer,商人名字)
     }
-    public postAkiLoad(container: DependencyContainer): void {
+    public postSptLoad(container: DependencyContainer): void {
         //addTrader.addTraderPosrtDBLoad(inFuncContainer,/* SPT原版格式的assor.json */,/* BaseOdj直接接收SPT原版格式的base.json */,/* 商人名字(同上) */,/* questassort直接接收SPT原版格式的questassort,PS:也可以之后用其他办法添加 */)
 
         //const common = container.resolve<VulcanCommon>("VulcanCommon");
@@ -153,10 +135,10 @@ class Mod implements IPreAkiLoadMod {
     }
     public postDBLoad(inFuncContainer: DependencyContainer): void {
     }
-      /**
-     * 创建任务奖励
-     */
-      public generateReward(
+    /**
+   * 创建任务奖励
+   */
+    public generateReward(
         pmcLevel: number,
         difficulty: number,
         traderId: string,
@@ -182,9 +164,9 @@ class Mod implements IPreAkiLoadMod {
         //common.Log(JSON.stringify(questConfig, null, 4))
     }
 
-     /**
-     * 创建每日任务
-     */
+    /**
+    * 创建每日任务
+    */
     public generateRepeatableQuest(
         pmcLevel: number,
         pmcTraderInfo: Record<string, TraderInfo>,
@@ -234,7 +216,7 @@ class Mod implements IPreAkiLoadMod {
         quest.rewards = repeatableQuestRewardGenerator.generateReward(pmcLevel, 1, traderId, repeatableConfig, pickupConfig);
         return quest;
     }
-    
+
     public generateRepeatableTemplate(type: string, traderId: string, side: string, repeatableConfig): IRepeatableQuest {
         const jsonUtil = Mod.container.resolve("JsonUtil");
         const databaseServer = Mod.container.resolve<DatabaseServer>("DatabaseServer");
@@ -301,7 +283,7 @@ class Mod implements IPreAkiLoadMod {
     ): void {
         const logger = Mod.container.resolve("WinstonLogger");
         const importerUtil = Mod.container.resolve("ImporterUtil");
-        const preAkiModLoader = Mod.container.resolve("PreAkiModLoader");
+        const preSptModLoader = Mod.container.resolve("PreSptModLoader");
         const weightedRandomHelper = Mod.container.resolve("WeightedRandomHelper");
         const itemFilterService = Mod.container.resolve("ItemFilterService");
         const randomUtil = Mod.container.resolve("RandomUtil");
@@ -312,7 +294,7 @@ class Mod implements IPreAkiLoadMod {
         const hashUtil = Mod.container.resolve("HashUtil");
         const jsonUtil = Mod.container.resolve("JsonUtil");
         const vfs = Mod.container.resolve("VFS")
-        const ModPath = preAkiModLoader.getModPath("[火神之心]VulcanCore")
+        const ModPath = preSptModLoader.getModPath("[火神之心]VulcanCore")
         const common = Mod.container.resolve("VulcanCommon")
         const repeatableQuestRewardGenerator = Mod.container.resolve("RepeatableQuestRewardGenerator")
         const lootGenerator = Mod.container.resolve("LootGenerator")
@@ -332,9 +314,9 @@ class Mod implements IPreAkiLoadMod {
             const BoxData = containerDetailsDb[1]._props.advBoxData
             const giftdata = common.getGiftData(BoxData.giftdata)
             var count = BoxData.count
-            
+
             foundInRaid = BoxData.forcefindinraid ? true : foundInRaid
-            
+
             //测试抽卡算法
             //感觉要出事
             //好像没问题嘿
@@ -342,14 +324,14 @@ class Mod implements IPreAkiLoadMod {
             //先压测一波
             for (var i = 0; i < count; i++) {
                 var Result = this.getadvGiftBoxContainer(giftdata, pmcData)
-                Array.isArray(Result[0]) ? rewards.push(...Result) :  rewards.push(Result)
+                Array.isArray(Result[0]) ? rewards.push(...Result) : rewards.push(Result)
             }
             //common.Log(JSON.stringify(rewards, null, 4))
         }
-        else if(isStaticBox){
+        else if (isStaticBox) {
             const BoxData = containerDetailsDb[1]._props.StaticBoxData
-            foundInRaid = BoxData.forcefindinraid ? true : foundInRaid 
-            for(var i = 0; i < BoxData.giftdata.length; i++){
+            foundInRaid = BoxData.forcefindinraid ? true : foundInRaid
+            for (var i = 0; i < BoxData.giftdata.length; i++) {
                 rewards.push(common.getGiftItemByType(BoxData.giftdata[i]))
             }
         }
@@ -407,7 +389,7 @@ class Mod implements IPreAkiLoadMod {
     public getadvGiftBoxContainer(giftdata, pmcdata) {
         const logger = Mod.container.resolve("WinstonLogger");
         const importerUtil = Mod.container.resolve("ImporterUtil");
-        const preAkiModLoader = Mod.container.resolve("PreAkiModLoader");
+        const preSptModLoader = Mod.container.resolve("PreSptModLoader");
         const weightedRandomHelper = Mod.container.resolve("WeightedRandomHelper");
         const itemFilterService = Mod.container.resolve("ItemFilterService");
         const randomUtil = Mod.container.resolve("RandomUtil");
@@ -418,7 +400,7 @@ class Mod implements IPreAkiLoadMod {
         const hashUtil = Mod.container.resolve("HashUtil");
         const jsonUtil = Mod.container.resolve("JsonUtil");
         const vfs = Mod.container.resolve("VFS")
-        const ModPath = preAkiModLoader.getModPath("[火神之心]VulcanCore")
+        const ModPath = preSptModLoader.getModPath("[火神之心]VulcanCore")
         const common = Mod.container.resolve("VulcanCommon")
         const repeatableQuestRewardGenerator = Mod.container.resolve("RepeatableQuestRewardGenerator")
         const lootGenerator = Mod.container.resolve("LootGenerator")
@@ -457,7 +439,7 @@ class Mod implements IPreAkiLoadMod {
         const rdata = pmcdata.GiftData[giftdata.name].rare
         //计算本次抽卡概率与up概率
         var randomchance = Math.floor(Math.random() * 1000) / 1000
-        var srrealchance = Math.floor((1/(sr.chancegrowcount + 1 + ((1-sr.chance)/sr.chancegrowpercount)))*1000)/1000
+        var srrealchance = Math.floor((1 / (sr.chancegrowcount + 1 + ((1 - sr.chance) / sr.chancegrowpercount))) * 1000) / 1000
         var upchance = Math.floor(Math.random() * 1000) / 1000
         if (sr.havebasereward) {
             //保底计算
@@ -477,13 +459,13 @@ class Mod implements IPreAkiLoadMod {
         //common.Access(`金色数据: 累加概率: ${srdata.addchance}, 抽取次数: ${srdata.count}, 保底叠加概率: ${srdata.upaddchance}`)
         //common.Access(`紫色数据: 累加概率: ${rdata.addchance}, 抽取次数: ${rdata.count}, 保底叠加概率: ${rdata.upaddchance}`)
         //common.Log(`金色概率: ${randomchance} / ${srrealchance + srdata.addchance}`)
-        if ((randomchance <= (srrealchance + srdata.addchance))||(srdata.count == (sr.chancegrowcount + 1 + Math.floor(((1-sr.chance)/sr.chancegrowpercount))))) {
-            
+        if ((randomchance <= (srrealchance + srdata.addchance)) || (srdata.count == (sr.chancegrowcount + 1 + Math.floor(((1 - sr.chance) / sr.chancegrowpercount))))) {
+
             common.Warn(`你抽到了金色传说!`)
-            if(srdata.count == (sr.chancegrowcount + 1 + ((1-sr.chance)/sr.chancegrowpercount))){
+            if (srdata.count == (sr.chancegrowcount + 1 + ((1 - sr.chance) / sr.chancegrowpercount))) {
                 //common.Log("吃满保底啦!")
             }
-            else{
+            else {
                 //common.Log("没吃满")
             }
             srdata.addchance = 0
@@ -493,7 +475,7 @@ class Mod implements IPreAkiLoadMod {
             //common.Access(`金色数据: 累加概率: ${srdata.addchance}, 抽取次数: ${srdata.count}, 保底叠加概率: ${srdata.upaddchance}`)
             //common.Access(`紫色数据: 累加概率: ${rdata.addchance}, 抽取次数: ${rdata.count}, 保底叠加概率: ${rdata.upaddchance}`)
             //up命中
-            if (upchance <= (sr.upchance + srdata.upaddchance) ) {
+            if (upchance <= (sr.upchance + srdata.upaddchance)) {
                 //common.Log(`保底没歪`)
                 srdata.upaddchance = 0
                 return common.getGiftItemByType(common.drawFromArray(srpool.chanceup), srdata.count)
@@ -505,7 +487,7 @@ class Mod implements IPreAkiLoadMod {
             }
         }
         //紫
-        else if (randomchance <= (r.chance)||(rdata.count == Math.floor((r.chancegrowcount + 1 + ((1-r.chance)/r.chancegrowpercount))))) {
+        else if (randomchance <= (r.chance) || (rdata.count == Math.floor((r.chancegrowcount + 1 + ((1 - r.chance) / r.chancegrowpercount))))) {
             rdata.addchance = 0
             rdata.count = 0
             //common.Warn(`你抽到了紫色史诗! 保底已复位`)
@@ -546,13 +528,14 @@ class Mod implements IPreAkiLoadMod {
         profileToReceiveMoney: IPmcData,
         sellRequest: IProcessSellTradeRequestData,
         sessionID: string,
-        output: IItemEventRouterResponse,){
-            
+        output: IItemEventRouterResponse,) {
+
         const logger = Mod.container.resolve("WinstonLogger");
         const importerUtil = Mod.container.resolve("ImporterUtil");
-        const preAkiModLoader = Mod.container.resolve("PreAkiModLoader");
+        const preSptModLoader = Mod.container.resolve("PreSptModLoader");
         const weightedRandomHelper = Mod.container.resolve("WeightedRandomHelper");
         const itemFilterService = Mod.container.resolve("ItemFilterService");
+        const fenceService = Mod.container.resolve("FenceService");
         const randomUtil = Mod.container.resolve("RandomUtil");
         const presetHelper = Mod.container.resolve("PresetHelper");
         const itemHelper = Mod.container.resolve("ItemHelper");
@@ -562,7 +545,7 @@ class Mod implements IPreAkiLoadMod {
         const jsonUtil = Mod.container.resolve("JsonUtil");
         const vfs = Mod.container.resolve("VFS")
         const databaseServer = Mod.container.resolve("DatabaseServer")
-        const ModPath = preAkiModLoader.getModPath("[火神之心]VulcanCore")
+        const ModPath = preSptModLoader.getModPath("[火神之心]VulcanCore")
         const common = Mod.container.resolve("VulcanCommon")
         const repeatableQuestRewardGenerator = Mod.container.resolve("RepeatableQuestRewardGenerator")
         const lootGenerator = Mod.container.resolve("LootGenerator")
@@ -573,10 +556,14 @@ class Mod implements IPreAkiLoadMod {
         const handbookHelper = Mod.container.resolve("HandbookHelper")
         const httpResponse = Mod.container.resolve("HttpResponseUtil")
 
+        common.Log("start")
+
         // Find item in inventory and remove it
         for (const itemToBeRemoved of sellRequest.items) {
             // Strip out whitespace
             const itemIdToFind = itemToBeRemoved.id.replace(/\s+/g, "");
+
+            common.Log("startfor")
 
             // Find item in player inventory, or show error to player if not found
             const matchingItemInInventory = profileWithItemsToSell.Inventory.items.find((x) => x._id === itemIdToFind);
@@ -588,25 +575,36 @@ class Mod implements IPreAkiLoadMod {
                 return;
             }
 
+            common.Log(0)
+
             logger.debug(`Selling: id: ${matchingItemInInventory._id} tpl: ${matchingItemInInventory._tpl}`);
 
+            common.Log(1)
             // THIS IS THE ONLY CHANGE WE DO IN THIS METHOD!
             if (sellRequest.tid === Traders.FENCE) {
+                common.Log("fence")
                 this.addToFence(profileWithItemsToSell.Inventory.items, matchingItemInInventory._id);
+                //fenceService.addItemsToFenceAssort(
+                //    profileWithItemsToSell.Inventory.items,
+                //    matchingItemInInventory,
+                //);
             }
             // THIS IS THE ONLY CHANGE WE DO IN THIS METHOD!
 
             // Also removes children
+            common.Log("remove item")
             inventoryHelper.removeItem(profileWithItemsToSell, itemToBeRemoved.id, sessionID, output);
         }
 
         // Give player money for sold item(s)
+        common.Log("givemoney")
+        //paymentService.giveProfileMoney(profileToReceiveMoney, sellRequest.price, sellRequest, output, sessionID);
         this.giveProfileMoney(profileToReceiveMoney, sellRequest.price, sellRequest, output, sessionID);
     }
-    public  addToFence(itemCollection: Item[], itemId: string) {
+    public addToFence(itemCollection: Item[], itemId: string) {
         const logger = Mod.container.resolve("WinstonLogger");
         const importerUtil = Mod.container.resolve("ImporterUtil");
-        const preAkiModLoader = Mod.container.resolve("PreAkiModLoader");
+        const preSptModLoader = Mod.container.resolve("PreSptModLoader");
         const weightedRandomHelper = Mod.container.resolve("WeightedRandomHelper");
         const itemFilterService = Mod.container.resolve("ItemFilterService");
         const randomUtil = Mod.container.resolve("RandomUtil");
@@ -618,7 +616,7 @@ class Mod implements IPreAkiLoadMod {
         const jsonUtil = Mod.container.resolve("JsonUtil");
         const vfs = Mod.container.resolve("VFS")
         const databaseServer = Mod.container.resolve("DatabaseServer")
-        const ModPath = preAkiModLoader.getModPath("[火神之心]VulcanCore")
+        const ModPath = preSptModLoader.getModPath("[火神之心]VulcanCore")
         const common = Mod.container.resolve("VulcanCommon")
         const repeatableQuestRewardGenerator = Mod.container.resolve("RepeatableQuestRewardGenerator")
         const lootGenerator = Mod.container.resolve("LootGenerator")
@@ -673,11 +671,10 @@ class Mod implements IPreAkiLoadMod {
         request: IProcessSellTradeRequestData,
         output: IItemEventRouterResponse,
         sessionID: string,
-    ): void
-    {
+    ): void {
         const logger = Mod.container.resolve("WinstonLogger");
         const importerUtil = Mod.container.resolve("ImporterUtil");
-        const preAkiModLoader = Mod.container.resolve("PreAkiModLoader");
+        const preSptModLoader = Mod.container.resolve("PreSptModLoader");
         const weightedRandomHelper = Mod.container.resolve("WeightedRandomHelper");
         const itemFilterService = Mod.container.resolve("ItemFilterService");
         const randomUtil = Mod.container.resolve("RandomUtil");
@@ -689,7 +686,7 @@ class Mod implements IPreAkiLoadMod {
         const jsonUtil = Mod.container.resolve("JsonUtil");
         const vfs = Mod.container.resolve("VFS")
         const databaseServer = Mod.container.resolve("DatabaseServer")
-        const ModPath = preAkiModLoader.getModPath("[火神之心]VulcanCore")
+        const ModPath = preSptModLoader.getModPath("[火神之心]VulcanCore")
         const common = Mod.container.resolve("VulcanCommon")
         const repeatableQuestRewardGenerator = Mod.container.resolve("RepeatableQuestRewardGenerator")
         const lootGenerator = Mod.container.resolve("LootGenerator")
@@ -699,7 +696,7 @@ class Mod implements IPreAkiLoadMod {
         const paymentService = Mod.container.resolve("PaymentService")
         const handbookHelper = Mod.container.resolve("HandbookHelper")
 
-        //common.Log("覆写测试")
+        common.Log("覆写测试")
         //vfs.writeFile(`${ModPath}export.json`, JSON.stringify(request, null, 4))
 
         const trader = traderHelper.getTrader(request.tid, sessionID);
@@ -709,83 +706,79 @@ class Mod implements IPreAkiLoadMod {
         let skipSendingMoneyToStash = false;
 
         //common.Log("覆写测试")
-        if(trader.customcurrency){
+        
+        if (trader.customcurrency) {
+            common.Log("custom")
             const customcurrency = trader.customcurrency
-            var customcalcAmount = Math.floor(amountToSend/trader.customcurrencyMulti)
-            const customamountToSend = Math.floor(amountToSend/trader.customcurrencyMulti)
+            var customcalcAmount = Math.floor(amountToSend / trader.customcurrencyMulti)
+            const customamountToSend = Math.floor(amountToSend / trader.customcurrencyMulti)
             const customcurrencyMaxStackSize = databaseServer.getTables().templates.items[customcurrency]._props.StackMaxSize;
             //common.Log("自定义货币")
-            for (const item of pmcData.Inventory.items)
-                {
-                    // Item is not currency
-                    if (item._tpl !== customcurrency)
-                    {
-                        continue;
+            for (const item of pmcData.Inventory.items) {
+                // Item is not currency
+                if (item._tpl !== customcurrency) {
+                    continue;
+                }
+
+                // Item is not in the stash
+                if (!inventoryHelper.isItemInStash(pmcData, item)) {
+                    continue;
+                }
+
+                // Found currency item
+                if (item.upd.StackObjectsCount < customcurrencyMaxStackSize) {
+                    if (item.upd.StackObjectsCount + customcalcAmount > customcurrencyMaxStackSize) {
+                        // calculate difference
+                        customcalcAmount -= customcurrencyMaxStackSize - item.upd.StackObjectsCount;
+                        item.upd.StackObjectsCount = customcurrencyMaxStackSize;
                     }
-        
-                    // Item is not in the stash
-                    if (!inventoryHelper.isItemInStash(pmcData, item))
-                    {
-                        continue;
+                    else {
+                        skipSendingMoneyToStash = true;
+                        item.upd.StackObjectsCount = item.upd.StackObjectsCount + customcalcAmount;
                     }
-        
-                    // Found currency item
-                    if (item.upd.StackObjectsCount < customcurrencyMaxStackSize)
-                    {
-                        if (item.upd.StackObjectsCount + customcalcAmount > customcurrencyMaxStackSize)
-                        {
-                            // calculate difference
-                            customcalcAmount -= customcurrencyMaxStackSize - item.upd.StackObjectsCount;
-                            item.upd.StackObjectsCount = customcurrencyMaxStackSize;
-                        }
-                        else
-                        {
-                            skipSendingMoneyToStash = true;
-                            item.upd.StackObjectsCount = item.upd.StackObjectsCount + customcalcAmount;
-                        }
-        
-                        // Inform client of change to items StackObjectsCount
-                        output.profileChanges[sessionID].items.change.push(item);
-        
-                        if (skipSendingMoneyToStash)
-                        {
-                            break;
-                        }
+
+                    // Inform client of change to items StackObjectsCount
+                    output.profileChanges[sessionID].items.change.push(item);
+
+                    if (skipSendingMoneyToStash) {
+                        break;
                     }
                 }
-        
-                // Create single currency item with all currency on it
-                const rootCurrencyReward = {
-                    _id: hashUtil.generate(),
-                    _tpl: customcurrency,
-                    upd: { StackObjectsCount: Math.round(customcalcAmount) },
+            }
+
+            // Create single currency item with all currency on it
+            const rootCurrencyReward = {
+                _id: hashUtil.generate(),
+                _tpl: customcurrency,
+                upd: { StackObjectsCount: Math.round(customcalcAmount) },
+            };
+
+            // Ensure money is properly split to follow its max stack size limit
+            const rewards = itemHelper.splitStackIntoSeparateItems(rootCurrencyReward);
+
+            if (!skipSendingMoneyToStash) {
+                const addItemToStashRequest: IAddItemsDirectRequest = {
+                    itemsWithModsToAdd: rewards,
+                    foundInRaid: false,
+                    callback: null,
+                    useSortingTable: true,
                 };
-        
-                // Ensure money is properly split to follow its max stack size limit
-                const rewards = itemHelper.splitStackIntoSeparateItems(rootCurrencyReward);
-        
-                if (!skipSendingMoneyToStash)
-                {
-                    const addItemToStashRequest: IAddItemsDirectRequest = {
-                        itemsWithModsToAdd: rewards,
-                        foundInRaid: false,
-                        callback: null,
-                        useSortingTable: true,
-                    };
-                    inventoryHelper.addItemsToStash(sessionID, addItemToStashRequest, pmcData, output);
-                }
-        
-                // Calcualte new total sale sum with trader item sold to
-                const saleSum = pmcData.TradersInfo[request.tid].salesSum + customamountToSend;
-        
-                pmcData.TradersInfo[request.tid].salesSum = saleSum;
-                traderHelper.lvlUp(request.tid, pmcData);
+                inventoryHelper.addItemsToStash(sessionID, addItemToStashRequest, pmcData, output);
+            }
+
+            // Calcualte new total sale sum with trader item sold to
+            const saleSum = pmcData.TradersInfo[request.tid].salesSum + customamountToSend;
+
+            pmcData.TradersInfo[request.tid].salesSum = saleSum;
+            traderHelper.lvlUp(request.tid, pmcData);
         }
-        else{
+        
+        else {
+            common.Log("vanilla")
             paymentService.giveProfileMoney(pmcData, amountToSend, request, output, sessionID)
         }
 
-        
+
     }
 }
 module.exports = { mod: new Mod() }
