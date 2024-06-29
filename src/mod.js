@@ -400,12 +400,12 @@ class Mod {
         const paymentService = Mod.container.resolve("PaymentService");
         const handbookHelper = Mod.container.resolve("HandbookHelper");
         const httpResponse = Mod.container.resolve("HttpResponseUtil");
-        common.Log("start");
+        //common.Log("start")
         // Find item in inventory and remove it
         for (const itemToBeRemoved of sellRequest.items) {
             // Strip out whitespace
             const itemIdToFind = itemToBeRemoved.id.replace(/\s+/g, "");
-            common.Log("startfor");
+            //common.Log("startfor")
             // Find item in player inventory, or show error to player if not found
             const matchingItemInInventory = profileWithItemsToSell.Inventory.items.find((x) => x._id === itemIdToFind);
             if (!matchingItemInInventory) {
@@ -414,12 +414,12 @@ class Mod {
                 httpResponse.appendErrorToOutput(output, errorMessage);
                 return;
             }
-            common.Log(0);
+            //common.Log(0)
             logger.debug(`Selling: id: ${matchingItemInInventory._id} tpl: ${matchingItemInInventory._tpl}`);
-            common.Log(1);
+            //common.Log(1)
             // THIS IS THE ONLY CHANGE WE DO IN THIS METHOD!
             if (sellRequest.tid === Traders_1.Traders.FENCE) {
-                common.Log("fence");
+                //common.Log("fence")
                 this.addToFence(profileWithItemsToSell.Inventory.items, matchingItemInInventory._id);
                 //fenceService.addItemsToFenceAssort(
                 //    profileWithItemsToSell.Inventory.items,
@@ -428,11 +428,11 @@ class Mod {
             }
             // THIS IS THE ONLY CHANGE WE DO IN THIS METHOD!
             // Also removes children
-            common.Log("remove item");
+            //common.Log("remove item")
             inventoryHelper.removeItem(profileWithItemsToSell, itemToBeRemoved.id, sessionID, output);
         }
         // Give player money for sold item(s)
-        common.Log("givemoney");
+        //common.Log("givemoney")
         //paymentService.giveProfileMoney(profileToReceiveMoney, sellRequest.price, sellRequest, output, sessionID);
         this.giveProfileMoney(profileToReceiveMoney, sellRequest.price, sellRequest, output, sessionID);
     }
@@ -517,7 +517,7 @@ class Mod {
         const paymentHelper = Mod.container.resolve("PaymentHelper");
         const paymentService = Mod.container.resolve("PaymentService");
         const handbookHelper = Mod.container.resolve("HandbookHelper");
-        common.Log("覆写测试");
+        //common.Log("覆写测试")
         //vfs.writeFile(`${ModPath}export.json`, JSON.stringify(request, null, 4))
         const trader = traderHelper.getTrader(request.tid, sessionID);
         const currency = paymentHelper.getCurrency(trader.currency);
@@ -582,7 +582,7 @@ class Mod {
             traderHelper.lvlUp(request.tid, pmcData);
         }
         else {
-            common.Log("vanilla");
+            //common.Log("vanilla")
             paymentService.giveProfileMoney(pmcData, amountToSend, request, output, sessionID);
         }
     }

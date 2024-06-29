@@ -398,6 +398,34 @@ export class VulcanCommon {
     public addLoot(id, local, num) {
         local[id] = num
     }
+    public addLootToBoss(id, num) {
+        const ClientDB = this.databaseServer.getTables(); 
+        const BotReshala = ClientDB.bots.types.bossbully
+        const BotSanitar = ClientDB.bots.types.bosssanitar
+        const BotKnight = ClientDB.bots.types.bossknight
+        const BotGlukhar = ClientDB.bots.types.bossgluhar
+        const BotShturman = ClientDB.bots.types.bosskojaniy
+        const BotKilla = ClientDB.bots.types.bosskilla
+        const BotZryachiy = ClientDB.bots.types.bosszryachiy
+        const BotTagilla = ClientDB.bots.types.bosstagilla
+        const BotBigPipe = ClientDB.bots.types.followerbigpipe
+        const BotBirdEye = ClientDB.bots.types.followerbirdeye
+        const BotKaban = ClientDB.bots.types.bossboar
+        const BotKolontay = ClientDB.bots.types.bosskolontay
+
+        this.addLoot(id, BotReshala.inventory.items.Pockets, num)
+        this.addLoot(id, BotSanitar.inventory.items.Pockets, num)
+        this.addLoot(id, BotGlukhar.inventory.items.Pockets, num)
+        this.addLoot(id, BotShturman.inventory.items.Pockets, num)
+        this.addLoot(id, BotTagilla.inventory.items.Pockets, num)
+        this.addLoot(id, BotKilla.inventory.items.Pockets, num)
+        this.addLoot(id, BotZryachiy.inventory.items.Pockets, num)
+        this.addLoot(id, BotKnight.inventory.items.Pockets, num)
+        this.addLoot(id, BotBigPipe.inventory.items.Pockets, num)
+        this.addLoot(id, BotBirdEye.inventory.items.Pockets, num)
+        this.addLoot(id, BotKaban.inventory.items.Pockets, num)
+        this.addLoot(id, BotKolontay.inventory.items.Pockets, num)
+    }
     public deepCopy(obj) {
         if (typeof obj !== 'object' || obj === null) {
             return obj;
@@ -494,50 +522,241 @@ export class VulcanCommon {
     }
     //装备修复
     public fixEuqipment(id, target) {
-        for (let item in this.databaseServer.getTables().templates.items) {
-            if (this.databaseServer.getTables().templates.items[item]._props.Slots) {
-                for (let slot in this.databaseServer.getTables().templates.items[item]._props.Slots) {
-                    for (let filter in this.databaseServer.getTables().templates.items[item]._props.Slots[slot]._props.filters[0].Filter) {
-                        if (this.databaseServer.getTables().templates.items[item]._props.Slots[slot]._props.filters[0].Filter[filter] == target) {
-                            this.databaseServer.getTables().templates.items[item]._props.Slots[slot]._props.filters[0].Filter.push(id)
+
+        const FixType = [
+            "None",
+            "Mags",
+            "Chamber",
+            "Mods",
+            "ModsBlackList",
+            "Container",
+            "ContainerBlackList",
+            "QuestEquip",
+            "QuestWeapon",
+            "HandOverItem",
+            "QuestWeaponGroup",
+            "HandOverItemGroup",
+            "QuestEquipBlackList",
+            "InRaidCountLimit"
+        ]
+        const Item = this.getItem(id)
+        const ClientDB = this.databaseServer.getTables()
+        const FixArr = Item._props.FixType
+
+        for (let item in ClientDB.templates.items) {
+            const ClientItem = ClientDB.templates.items[item]
+            if (FixArr?.length > 0) {
+                //Ammo
+                if (FixArr.includes("Mags")) {
+                    if (ClientItem._props.Cartridges) {
+                        for (var i = 0; i < ClientItem._props.Cartridges.length; i++) {
+                            if (ClientItem._props.Cartridges[i]._props.filters[0].Filter.includes(target)) {
+                                ClientItem._props.Cartridges[i]._props.filters[0].Filter.push(id)
+                            }
                         }
                     }
                 }
-            }
-            if (this.databaseServer.getTables().templates.items[item]._props.Grids) {
-                for (var i = 0; i < this.databaseServer.getTables().templates.items[item]._props.Grids.length; i++) {
-                    for (var j = 0; j < this.databaseServer.getTables().templates.items[item]._props.Grids[i]._props.filters.length; j++) {
-                        for (var k = 0; k < this.databaseServer.getTables().templates.items[item]._props.Grids[i]._props.filters[j].Filter.length; k++) {
-                            if (this.databaseServer.getTables().templates.items[item]._props.Grids[i]._props.filters[j].Filter[k] == target) {
-                                this.databaseServer.getTables().templates.items[item]._props.Grids[i]._props.filters[j].Filter.push(id)
+                if (FixArr.includes("Chamber")) {
+                    if (ClientItem._props.Chambers) {
+                        for (var i = 0; i < ClientItem._props.Chambers.length; i++) {
+                            if (ClientItem._props.Chambers[i]._props.filters[0].Filter.includes(target)) {
+                                ClientItem._props.Chambers[i]._props.filters[0].Filter.push(id)
+                            }
+                        }
+                    }
+                }
+                if (FixArr.includes("Mods")) {
+                    if (ClientItem._props.Slots) {
+                        for (var i = 0; i < ClientItem._props.Slots.length; i++) {
+                            if (ClientItem._props.Slots[i]._props.filters[0].Filter.includes(target)) {
+                                ClientItem._props.Slots[i]._props.filters[0].Filter.push(id)
+                            }
+                        }
+                    }
+                }
+                if (FixArr.includes("ModsBlackList")) {
+                    if (ClientItem._props?.ConflictingItems?.includes(target)) {
+                        ClientItem._props?.ConflictingItems.push(id)
+                    }
+                }
+                if (FixArr.includes("Container")) {
+                    if (ClientItem._props.Grids) {
+                        for (var i = 0; i < ClientItem._props.Grids?.length; i++) {
+                            if (ClientItem._props.Grids[i]._props.filters[0]?.Filter.includes(target)) {
+                                ClientItem._props.Grids[i]._props.filters[0]?.Filter.push(id)
+                            }
+                        }
+                    }
+                }
+                if (FixArr.includes("ContainerBlackList")) {
+                    if (ClientItem._props.Grids) {
+                        for (var i = 0; i < ClientItem._props.Grids.length; i++) {
+                            if (ClientItem._props.Grids[i]._props.filters[0].ExcludedFilter.includes(target)) {
+                                ClientItem._props.Grids[i]._props.filters[0].ExcludedFilter.push(id)
                             }
                         }
                     }
                 }
             }
-            if (this.databaseServer.getTables().templates.items[item]._props.Cartridges) {
-                for (var i = 0; i < this.databaseServer.getTables().templates.items[item]._props.Cartridges.length; i++) {
-                    for (var j = 0; j < this.databaseServer.getTables().templates.items[item]._props.Cartridges[i]._props.filters.length; j++) {
-                        for (var k = 0; k < this.databaseServer.getTables().templates.items[item]._props.Cartridges[i]._props.filters[j].Filter.length; k++) {
-                            if (this.databaseServer.getTables().templates.items[item]._props.Cartridges[i]._props.filters[j].Filter[k] == target) {
-                                this.databaseServer.getTables().templates.items[item]._props.Cartridges[i]._props.filters[j].Filter.push(id)
+            else {
+                if (this.databaseServer.getTables().templates.items[item]._props.Slots) {
+                    for (let slot in this.databaseServer.getTables().templates.items[item]._props.Slots) {
+                        for (let filter in this.databaseServer.getTables().templates.items[item]._props.Slots[slot]._props.filters[0].Filter) {
+                            if (this.databaseServer.getTables().templates.items[item]._props.Slots[slot]._props.filters[0].Filter[filter] == target) {
+                                this.databaseServer.getTables().templates.items[item]._props.Slots[slot]._props.filters[0].Filter.push(id)
                             }
                         }
                     }
                 }
-            }
-            if (this.databaseServer.getTables().templates.items[item]._props.Chambers) {
-                for (var i = 0; i < this.databaseServer.getTables().templates.items[item]._props.Chambers.length; i++) {
-                    for (var j = 0; j < this.databaseServer.getTables().templates.items[item]._props.Chambers[i]._props.filters.length; j++) {
-                        for (var k = 0; k < this.databaseServer.getTables().templates.items[item]._props.Chambers[i]._props.filters[j].Filter.length; k++) {
-                            if (this.databaseServer.getTables().templates.items[item]._props.Chambers[i]._props.filters[j].Filter[k] == target) {
-                                this.databaseServer.getTables().templates.items[item]._props.Chambers[i]._props.filters[j].Filter.push(id)
+                if (this.databaseServer.getTables().templates.items[item]._props.Grids) {
+                    for (var i = 0; i < this.databaseServer.getTables().templates.items[item]._props.Grids.length; i++) {
+                        for (var j = 0; j < this.databaseServer.getTables().templates.items[item]._props.Grids[i]._props.filters.length; j++) {
+                            for (var k = 0; k < this.databaseServer.getTables().templates.items[item]._props.Grids[i]._props.filters[j].Filter.length; k++) {
+                                if (this.databaseServer.getTables().templates.items[item]._props.Grids[i]._props.filters[j].Filter[k] == target) {
+                                    this.databaseServer.getTables().templates.items[item]._props.Grids[i]._props.filters[j].Filter.push(id)
+                                }
+                            }
+                        }
+                    }
+                }
+                if (this.databaseServer.getTables().templates.items[item]._props.Cartridges) {
+                    for (var i = 0; i < this.databaseServer.getTables().templates.items[item]._props.Cartridges.length; i++) {
+                        for (var j = 0; j < this.databaseServer.getTables().templates.items[item]._props.Cartridges[i]._props.filters.length; j++) {
+                            for (var k = 0; k < this.databaseServer.getTables().templates.items[item]._props.Cartridges[i]._props.filters[j].Filter.length; k++) {
+                                if (this.databaseServer.getTables().templates.items[item]._props.Cartridges[i]._props.filters[j].Filter[k] == target) {
+                                    this.databaseServer.getTables().templates.items[item]._props.Cartridges[i]._props.filters[j].Filter.push(id)
+                                }
+                            }
+                        }
+                    }
+                }
+                if (this.databaseServer.getTables().templates.items[item]._props.Chambers) {
+                    for (var i = 0; i < this.databaseServer.getTables().templates.items[item]._props.Chambers.length; i++) {
+                        for (var j = 0; j < this.databaseServer.getTables().templates.items[item]._props.Chambers[i]._props.filters.length; j++) {
+                            for (var k = 0; k < this.databaseServer.getTables().templates.items[item]._props.Chambers[i]._props.filters[j].Filter.length; k++) {
+                                if (this.databaseServer.getTables().templates.items[item]._props.Chambers[i]._props.filters[j].Filter[k] == target) {
+                                    this.databaseServer.getTables().templates.items[item]._props.Chambers[i]._props.filters[j].Filter.push(id)
+                                }
                             }
                         }
                     }
                 }
             }
         }
+        for (let quest in ClientDB.templates.quests) {
+            const ClientQuest = ClientDB.templates.quests[quest]
+            const Finish = ClientQuest.conditions.AvailableForFinish
+            if (FixArr?.length > 0) {
+                if (FixArr.includes("QuestEquip")) {
+                    //Finish.find(x=>(x.type == "Elimination" && x.counter.conditions.some(x=>(x.conditions=="Equipment"&&x.equipmentInclusive.some(y=>(y.includes(target)&&y.length==1))))))?.counter.conditions.find(x=>(x.conditions=="Equipment"&&x.equipmentInclusive.some(y=>(y.includes(target)&&y.length==1))))?.equipmentInclusive
+                    for (var i = 0; i < Finish.length; i++) {
+                        if (Finish[i].type == "Elimination") {
+                            //if (Finish[i].counter.conditions.find(x => (x.conditions == "Equipment" && x.equipmentInclusive.some(y => (y.includes(target) && y.length == 1))))?.equipmentInclusive) {
+                            for (var j = 0; j < Finish[i].counter.conditions.length; j++) {
+                                if (Finish[i].counter.conditions[j].conditionType == "Equipment") {
+                                    //this.Warn("eqp")
+                                    for (var k = 0; k < Finish[i].counter.conditions[j].equipmentInclusive.length; k++) {
+                                        //this.Warn(JSON.stringify(Finish[i].counter.conditions[j].equipmentInclusive[k], null, 4))
+                                        if (Finish[i].counter.conditions[j].equipmentInclusive[k].includes(target)) {
+                                            //this.Warn("find")
+                                            //没问题
+                                            Finish[i].counter.conditions[j].equipmentInclusive.push([
+                                                id
+                                            ])
+                                            break
+                                        }
+                                    }
+                                }
+                            }
+                            //}
+                        }
+                    }
+                    //表达式应该还能继续套
+                    //回来试试
+                }
+                if (FixArr.includes("QuestEquipBlackList")) {
+                    for (var i = 0; i < Finish.length; i++) {
+                        if (Finish[i].type == "Elimination") {
+                            for (var j = 0; j < Finish[i].counter.conditions.length; j++) {
+                                if (Finish[i].counter.conditions[j].conditionType == "Equipment") {
+                                    for (var k = 0; k < Finish[i].counter.conditions[j].equipmentExclusive.length; k++) {
+                                        if (Finish[i].counter.conditions[j].equipmentExclusive[k].includes(target)) {
+                                            Finish[i].counter.conditions[j].equipmentExclusive.push([
+                                                id
+                                            ])
+                                            break
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                if (FixArr.includes("QuestWeapon")) {
+                    for (var i = 0; i < Finish.length; i++) {
+                        if (Finish[i].type == "Elimination") {
+                            for (var j = 0; j < Finish[i].counter.conditions.length; j++) {
+                                if (Finish[i].counter.conditions[j].conditionType == "Kills") {
+                                    if (Finish[i].counter.conditions[j].weapon.includes(target)) {
+                                        Finish[i].counter.conditions[j].weapon.push(id)
+                                        break
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                if (FixArr.includes("QuestWeaponGroup")) {
+                    for (var i = 0; i < Finish.length; i++) {
+                        if (Finish[i].type == "Elimination") {
+                            for (var j = 0; j < Finish[i].counter.conditions.length; j++) {
+                                if (Finish[i].counter.conditions[j].conditionType == "Kills") {
+                                    if (Finish[i].counter.conditions[j].weapon?.includes(target) && Finish[i].counter.conditions[j].weapon?.length > 1) {
+                                        Finish[i].counter.conditions[j].weapon?.push(id)
+                                        break
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                if (FixArr.includes("HandOverItem")) {
+                    for (var i = 0; i < Finish.length; i++) {
+                        if (Finish[i].conditionType == "HandoverItem") {
+                            if (Finish[i].target?.includes(target)) {
+                                Finish[i].target?.push(id)
+                            }
+                        }
+                    }
+                }
+                if (FixArr.includes("HandOverItemGroup")) {
+                    for (var i = 0; i < Finish.length; i++) {
+                        if (Finish[i].conditionType == "HandoverItem") {
+                            if (Finish[i].target?.includes(target) && Finish[i].target?.length > 1) {
+                                Finish[i].target?.push(id)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        if (FixArr?.length > 0) {
+            if (FixArr.includes("InRaidCountLimit")) {
+                const Limit = ClientDB.globals.config.RestrictionsInRaid
+                for (var i = 0; i < Limit.length; i++) {
+                    if (Limit[i].TemplateId == target) {
+                        Limit.push({
+                            MaxInLobby: Limit[i].MaxInLobby,
+                            MaxInRaid: Limit[i].MaxInRaid,
+                            TemplateId: id
+                        })
+                        break;
+                    }
+                }
+            }
+
+        }
+
     }
     //使用跳蚤市场标签处理容器物品
     public addItemWithRagfairTag(Tag, Filter) {
@@ -1474,6 +1693,35 @@ export class VulcanCommon {
         }
         FenceConfig.fence.blacklist.push(itemid)
     }
+    public excludeItemArr(itemid) {
+        const BlackListType = [
+            "AirDrop",
+            "PMCLoot",
+            "ScavCaseLoot",
+            "Fence"
+        ]
+        const ScavCaseConfig = this.configServer.getConfig<IScavCaseConfig>(ConfigTypes.SCAVCASE)
+        const PMCConfig = this.configServer.getConfig<IPmcConfig>(ConfigTypes.PMC)
+        const AirDropConfig = this.configServer.getConfig<IAirdropConfig>(ConfigTypes.AIRDROP)
+        const FenceConfig = this.configServer.getConfig<ITraderConfig>(ConfigTypes.TRADER)
+        const Item = this.getItem(itemid)
+        if(Item._props?.BlackListType?.includes("ScavCaseLoot")){
+            ScavCaseConfig.rewardItemBlacklist.push(itemid)
+        }
+        if(Item._props?.BlackListType?.includes("PMCLoot")){
+            PMCConfig.vestLoot.blacklist.push(itemid)
+            PMCConfig.pocketLoot.blacklist.push(itemid)
+            PMCConfig.backpackLoot.blacklist.push(itemid)
+        }
+        if(Item._props?.BlackListType?.includes("AirDrop")){
+            for (let type in AirDropConfig.loot) {
+                AirDropConfig.loot[type].itemBlacklist.push(itemid)
+            }
+        }
+        if(Item._props?.BlackListType?.includes("Fence")){
+            FenceConfig.fence.blacklist.push(itemid)
+        }
+    }
     public excludeItemBlackList(Item) {
         const ScavCaseConfig = this.configServer.getConfig<IScavCaseConfig>(ConfigTypes.SCAVCASE)
         const PMCConfig = this.configServer.getConfig<IPmcConfig>(ConfigTypes.PMC)
@@ -1497,23 +1745,27 @@ export class VulcanCommon {
                 const targetValue = target[key];
 
                 if (Array.isArray(sourceValue)) {
-                    // If the value is an array, assign the array
+                    // 如果值是数组，直接分配数组
                     target[key] = sourceValue;
-                } else if (sourceValue != null && typeof sourceValue === 'object') {
-                    // Check if the sourceValue is an empty object
+                }
+                else if (sourceValue != null && typeof sourceValue === 'object') {
                     if (Object.keys(sourceValue).length === 0) {
-                        // If sourceValue is an empty object, directly assign it
+                        // 如果 sourceValue 是一个空对象，直接赋值
                         target[key] = sourceValue;
-                    } else {
-                        // If the value is a non-empty object, recursively merge
-                        if (targetValue != null && typeof targetValue === 'object') {
+                    }
+                    else {
+                        // 如果值是一个非空对象，递归合并
+                        if (targetValue != null && typeof targetValue === 'object' && !Array.isArray(targetValue)) {
+                            // 如果目标值存在且也是对象，递归合并
                             target[key] = this.deepMerge(targetValue as NestedObject, sourceValue as NestedObject);
-                        } else {
+                        }
+                        else {
+                            // 否则，创建一个新对象进行合并
                             target[key] = this.deepMerge({}, sourceValue as NestedObject);
                         }
                     }
                 } else {
-                    // Otherwise, directly assign the value
+                    // 否则，直接分配值
                     target[key] = sourceValue;
                 }
             }
@@ -1550,6 +1802,8 @@ export class VulcanCommon {
     public initItem(ItemObj, mode: number) {
         const ITEM = this.databaseServer.getTables().templates.items
         const Local = this.databaseServer.getTables().locales.global.ch
+        const Globals = this.databaseServer.getTables().globals
+        const inventoryConfig = this.configServer.getConfig<IInventoryConfig>(ConfigTypes.INVENTORY);
         //var test = {}
         switch (mode) {
             case 1: {
@@ -1588,12 +1842,20 @@ export class VulcanCommon {
                             this.databaseServer.getTables().locations[ItemObj[i]._props.QuestItemData.location[m]].looseLoot.spawnpointsForced.push(ItemObj[i]._props.QuestItemData)
                         }
                     }
+                    if (ItemObj[i]._props.maxCountInRaid > 0) {
+                        Globals.config.RestrictionsInRaid.push({
+                            MaxInLobby: ItemObj[i]._props.maxCountInRaid,
+                            MaxInRaid: ItemObj[i]._props.maxCountInRaid,
+                            TemplateId: ItemObj[i]._id
+                        })
+                    }
                     Local[`${ItemObj[i]._id} Name`] = ItemObj[i]._props.Name
                     Local[`${ItemObj[i]._id} ShortName`] = ItemObj[i]._props.ShortName
                     Local[`${ItemObj[i]._id} Description`] = ItemObj[i]._props.Description
                     if (ItemObj[i]._props.StimulatorBuffs && ItemObj[i]._props.BuffValue) {
                         this.databaseServer.getTables().globals.config.Health.Effects.Stimulator.Buffs[ItemObj[i]._props.StimulatorBuffs] = ItemObj[i]._props.BuffValue
                     }
+                    this.excludeItemArr(ItemObj[i]._id)
                     this.fixEuqipment(ItemObj[i]._id, ItemObj[i].targetid)
                 }
             }
@@ -1641,6 +1903,73 @@ export class VulcanCommon {
                         }
                     }
                     this.fixEuqipment(ItemObj[i].items._id, ItemObj[i].tpl)
+                }
+            }
+                break;
+            default: {
+                this.Warn("警告：加载参数缺失或不合法，跳过加载程序……")
+            }
+        }
+
+    }
+    public initItemDebug(ItemObj, mode: number, TraderID: string) {
+        const ITEM = this.databaseServer.getTables().templates.items
+        const Local = this.databaseServer.getTables().locales.global.ch
+        const Globals = this.databaseServer.getTables().globals
+        const inventoryConfig = this.configServer.getConfig<IInventoryConfig>(ConfigTypes.INVENTORY);
+        //var test = {}
+        switch (mode) {
+            case 1: {
+                for (let i in ItemObj) {
+                    var target = this.deepCopy(this.getItem(ItemObj[i].targetid))
+                    ITEM[ItemObj[i]._id] = this.deepMerge(target, ItemObj[i])
+                    this.databaseServer.getTables().templates.handbook.Items.push({
+                        "Id": ItemObj[i]._id,
+                        "ParentId": ItemObj[i]._props.RagfairType,
+                        "Price": ItemObj[i]._props.DefaultPrice
+                    })
+                    if (ItemObj[i]._props.CanFindInRaid == true) {
+                        if (ItemObj[i]._props.CustomLoot == true) {
+                            this.addWorldGenerate(ItemObj[i]._id, ItemObj[i]._props.CustomLootTarget)
+                        }
+                        else {
+                            this.addWorldGenerate(ItemObj[i]._id, ItemObj[i].targetid)
+                        }
+                    }
+                    else {
+                        this.excludeItem(ItemObj[i]._id)
+                        //this.excludeLoot(ItemObj[i]._id)
+                    }
+                    if (ItemObj[i]._props.isMoney == true) {
+                        inventoryConfig.customMoneyTpls.push(ItemObj[i]._id)
+                    }
+                    if (ItemObj[i]._props.isGiftBox == true) {
+                        inventoryConfig.randomLootContainers[ItemObj[i]._id] = {
+                            rewardCount: ItemObj[i]._props.BoxData.Count,
+                            foundInRaid: true,
+                            rewardTplPool: ItemObj[i]._props.BoxData.Rewards
+                        }
+                    }
+                    if (ItemObj[i]._props.isQuestItem == true) {
+                        for (var m = 0; m < ItemObj[i]._props.QuestItemData.location.length; m++) {
+                            this.databaseServer.getTables().locations[ItemObj[i]._props.QuestItemData.location[m]].looseLoot.spawnpointsForced.push(ItemObj[i]._props.QuestItemData)
+                        }
+                    }
+                    if (ItemObj[i]._props.maxCountInRaid > 0) {
+                        Globals.config.RestrictionsInRaid.push({
+                            MaxInLobby: ItemObj[i]._props.maxCountInRaid,
+                            MaxInRaid: ItemObj[i]._props.maxCountInRaid,
+                            TemplateId: ItemObj[i]._id
+                        })
+                    }
+                    Local[`${ItemObj[i]._id} Name`] = ItemObj[i]._props.Name
+                    Local[`${ItemObj[i]._id} ShortName`] = ItemObj[i]._props.ShortName
+                    Local[`${ItemObj[i]._id} Description`] = ItemObj[i]._props.Description
+                    if (ItemObj[i]._props.StimulatorBuffs && ItemObj[i]._props.BuffValue) {
+                        this.databaseServer.getTables().globals.config.Health.Effects.Stimulator.Buffs[ItemObj[i]._props.StimulatorBuffs] = ItemObj[i]._props.BuffValue
+                    }
+                    this.excludeItemArr(ItemObj[i]._id)
+                    this.fixEuqipment(ItemObj[i]._id, ItemObj[i].targetid)
                 }
             }
                 break;
@@ -1728,6 +2057,7 @@ export class VulcanCommon {
     public initItemRITC(ItemObj, mode: number) {
         const ITEM = this.databaseServer.getTables().templates.items
         const Local = this.databaseServer.getTables().locales.global.ch
+        const Globals = this.databaseServer.getTables().globals
         const inventoryConfig = this.configServer.getConfig<IInventoryConfig>(ConfigTypes.INVENTORY);
         //var test = {}
         switch (mode) {
@@ -1766,6 +2096,13 @@ export class VulcanCommon {
                         for (var m = 0; m < ItemObj[i]._props.QuestItemData.location.length; m++) {
                             this.databaseServer.getTables().locations[ItemObj[i]._props.QuestItemData.location[m]].looseLoot.spawnpointsForced.push(ItemObj[i]._props.QuestItemData)
                         }
+                    }
+                    if (ItemObj[i]._props.maxCountInRaid > 0) {
+                        Globals.config.RestrictionsInRaid.push({
+                            MaxInLobby: ItemObj[i]._props.maxCountInRaid,
+                            MaxInRaid: ItemObj[i]._props.maxCountInRaid,
+                            TemplateId: ItemObj[i]._id
+                        })
                     }
                     Local[`${ItemObj[i]._id} Name`] = ItemObj[i]._props.Name
                     Local[`${ItemObj[i]._id} ShortName`] = ItemObj[i]._props.ShortName
@@ -3397,6 +3734,24 @@ export class VulcanCommon {
     public getGiftData(datastring) {
         return this.databaseServer.getTables().globals.GiftData[datastring]
     }
-
-
+    public initPreset(Preset) {
+        const Locale = this.databaseServer.getTables().locales.global.ch
+        const ELocale = this.databaseServer.getTables().locales.global.en
+        const PresetTarget = this.databaseServer.getTables().globals.ItemPresets
+        if (Preset?.length > 0) {
+            for (var i = 0; i < Preset.length; i++) {
+                PresetTarget[Preset[i].Name] = {
+                    _changeWeaponName: Preset[i].ChangePresetName,
+                    _encyclopedia: Preset[i].Preset[0]._tpl,
+                    _id: Preset[i].Name,
+                    _items: Preset[i].Preset,
+                    _name: Preset[i].PresetName,
+                    _parent: Preset[i].Preset[0]._id,
+                    _type: "Preset"
+                }
+                Locale[Preset[i].Name] = Preset[i].PresetName
+                ELocale[Preset[i].Name] = Preset[i].PresetName
+            }
+        }
+    }
 }
