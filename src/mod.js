@@ -53,6 +53,16 @@ class Mod {
             };
             //result.giveProfileMoney = this.giveProfileMoney
         }, { frequency: "Always" });
+        //修复任务奖励的配方处理(暂时性, 310dev已修)
+        container.afterResolution("QuestHelper", (_t, result) => {
+            //将原逻辑复制保留
+            //result.giveProfileMoneySrc = result.giveProfileMoney;
+            //覆写新逻辑,委托的形式（不推荐直接赋值）
+            result.findAndAddHideoutProductionIdToProfile = (pmcData, craftUnlockReward, questDetails, sessionID, response) => {
+                return this.addHideoutRecipe(pmcData, craftUnlockReward, questDetails, sessionID, response);
+            };
+            //result.giveProfileMoney = this.giveProfileMoney
+        }, { frequency: "Always" });
         //addTrader.addTraderPreSptload(inFuncContainer,商人名字)
     }
     postSptLoad(container) {
@@ -585,6 +595,53 @@ class Mod {
             //common.Log("vanilla")
             paymentService.giveProfileMoney(pmcData, amountToSend, request, output, sessionID);
         }
+    }
+    addHideoutRecipe(pmcData, craftUnlockReward, questDetails, sessionID, response) {
+        const logger = Mod.container.resolve("WinstonLogger");
+        const importerUtil = Mod.container.resolve("ImporterUtil");
+        const preSptModLoader = Mod.container.resolve("PreSptModLoader");
+        const weightedRandomHelper = Mod.container.resolve("WeightedRandomHelper");
+        const itemFilterService = Mod.container.resolve("ItemFilterService");
+        const randomUtil = Mod.container.resolve("RandomUtil");
+        const presetHelper = Mod.container.resolve("PresetHelper");
+        const itemHelper = Mod.container.resolve("ItemHelper");
+        const localisationService = Mod.container.resolve("LocalisationService");
+        const mathUtil = Mod.container.resolve("MathUtil");
+        const hashUtil = Mod.container.resolve("HashUtil");
+        const jsonUtil = Mod.container.resolve("JsonUtil");
+        const vfs = Mod.container.resolve("VFS");
+        const databaseServer = Mod.container.resolve("DatabaseServer");
+        const databaseService = Mod.container.resolve("DatabaseService");
+        const ModPath = preSptModLoader.getModPath("[火神之心]VulcanCore");
+        const common = Mod.container.resolve("VulcanCommon");
+        const repeatableQuestRewardGenerator = Mod.container.resolve("RepeatableQuestRewardGenerator");
+        const lootGenerator = Mod.container.resolve("LootGenerator");
+        const inventoryHelper = Mod.container.resolve("InventoryHelper");
+        const traderHelper = Mod.container.resolve("TraderHelper");
+        const paymentHelper = Mod.container.resolve("PaymentHelper");
+        const paymentService = Mod.container.resolve("PaymentService");
+        const handbookHelper = Mod.container.resolve("HandbookHelper");
+        //common.Log("覆写测试")
+        //vfs.writeFile(`${ModPath}export.json`, JSON.stringify(request, null, 4))
+        // Get hideout crafts and find those that match by areatype/required level/end product tpl - hope for just one match
+        const hideoutProductions = databaseService.getHideout().production;
+        const matchingProductions = hideoutProductions.filter((prod) => prod.areaType === Number.parseInt(craftUnlockReward.traderId)
+            && prod.requirements.some((x) => x.requiredLevel === craftUnlockReward.loyaltyLevel)
+            && prod.endProduct === craftUnlockReward.items[0]._tpl
+        //&& prod.count === (craftUnlockReward.items[0].upd?.StackObjectsCount ?? 1),
+        );
+        // More/less than 1 match, above filtering wasn't strict enough
+        if (matchingProductions.length !== 1) {
+            logger.error(localisationService.getText("quest-unable_to_find_matching_hideout_production", {
+                questName: questDetails.QuestName,
+                matchCount: matchingProductions.length,
+            }));
+            return;
+        }
+        // Add above match to pmc profile + client response
+        const matchingCraftId = matchingProductions[0]._id;
+        pmcData.UnlockedInfo.unlockedProductionRecipe.push(matchingCraftId);
+        response.profileChanges[sessionID].recipeUnlocked[matchingCraftId] = true;
     }
 }
 module.exports = { mod: new Mod() };
