@@ -2648,7 +2648,7 @@ export class VulcanCommon {
         for (let i in Recipe) {
             var R = Recipe[i]
             const ClientDB = this.databaseServer.getTables()
-            ClientDB.hideout.production.push({
+            ClientDB.hideout.production.recipes.push({
                 _id: R.ID,
                 areaType: R.Area,
                 requirements: [],
@@ -2662,7 +2662,7 @@ export class VulcanCommon {
                 isEncoded: false
 
             })
-            ClientDB.hideout.production[ClientDB.hideout.production.length - 1].requirements.push({
+            ClientDB.hideout.production.recipes[ClientDB.hideout.production.recipes.length - 1].requirements.push({
                 areaType: R.Area,
                 requiredLevel: R.AreaLevel,
                 type: "Area"
@@ -2670,7 +2670,7 @@ export class VulcanCommon {
 
             if (R.Locked == true) {
 
-                ClientDB.hideout.production[ClientDB.hideout.production.length - 1].requirements.push({
+                ClientDB.hideout.production.recipes[ClientDB.hideout.production.recipes.length - 1].requirements.push({
                     questId: R.Quest,
                     type: "QuestComplete"
                 })
@@ -2696,13 +2696,13 @@ export class VulcanCommon {
                 ClientDB.templates.quests[R.Quest].rewards.Success = this.indexArray(Reward)
             }
             for (let j in R.Require.Tool) {
-                ClientDB.hideout.production[ClientDB.hideout.production.length - 1].requirements.push({
+                ClientDB.hideout.production.recipes[ClientDB.hideout.production.recipes.length - 1].requirements.push({
                     templateId: j,
                     "type": "Tool"
                 })
             }
             for (let j in R.Require.Item) {
-                ClientDB.hideout.production[ClientDB.hideout.production.length - 1].requirements.push({
+                ClientDB.hideout.production.recipes[ClientDB.hideout.production.recipes.length - 1].requirements.push({
                     templateId: j,
                     "count": R.Require.Item[j],
                     "isFunctional": false,

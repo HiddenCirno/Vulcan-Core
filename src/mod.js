@@ -7,6 +7,7 @@ const Traders_1 = require("C:/snapshot/project/obj/models/enums/Traders");
 const Common_1 = require("./vulcan-api/Common");
 const Money_1 = require("C:/snapshot/project/obj/models/enums/Money");
 const Map_1 = require("./vulcan-api/Map");
+const SkillTypes_1 = require("C:/snapshot/project/obj/models/enums/SkillTypes");
 //const addTrader = new TraderOperateJsonOdj
 //
 class Mod {
@@ -53,16 +54,64 @@ class Mod {
             };
             //result.giveProfileMoney = this.giveProfileMoney
         }, { frequency: "Always" });
+        /*
         //修复任务奖励的配方处理(暂时性, 310dev已修)
-        container.afterResolution("QuestHelper", (_t, result) => {
+        container.afterResolution("QuestHelper", (_t, result: QuestHelper) => {
             //将原逻辑复制保留
             //result.giveProfileMoneySrc = result.giveProfileMoney;
             //覆写新逻辑,委托的形式（不推荐直接赋值）
-            result.findAndAddHideoutProductionIdToProfile = (pmcData, craftUnlockReward, questDetails, sessionID, response) => {
+            result.findAndAddHideoutProductionIdToProfile = (
+                pmcData: IPmcData,
+                craftUnlockReward: IQuestReward,
+                questDetails: IQuest,
+                sessionID: string,
+                response: IItemEventRouterResponse,) => {
                 return this.addHideoutRecipe(pmcData, craftUnlockReward, questDetails, sessionID, response);
             };
             //result.giveProfileMoney = this.giveProfileMoney
         }, { frequency: "Always" });
+        //修复每日任务免费刷新次数(暂时性, 310dev已修)
+        container.afterResolution("RepeatableQuestController", (_t, result: RepeatableQuestController) => {
+            //将原逻辑复制保留
+            //result.giveProfileMoneySrc = result.giveProfileMoney;
+            //覆写新逻辑,委托的形式（不推荐直接赋值）
+            result.getRepeatableQuestSubTypeFromProfile = (
+                repeatableConfig: IRepeatableQuestConfig,
+                pmcData: IPmcData,) => {
+                return this.getRepeatableQuestSubTypeFromProfile(repeatableConfig, pmcData);
+            };
+            //result.giveProfileMoney = this.giveProfileMoney
+        }, { frequency: "Always" });
+        /*
+        //修复每日任务免费刷新不生效(暂时性, 310dev已修)
+        container.afterResolution("RepeatableQuestController", (_t, result: RepeatableQuestController) => {
+            //将原逻辑复制保留
+            //result.giveProfileMoneySrc = result.giveProfileMoney;
+            //覆写新逻辑,委托的形式（不推荐直接赋值）
+            result.changeRepeatableQuest = (
+                pmcData: IPmcData,
+                changeRequest: IRepeatableQuestChangeRequest,
+                sessionID: string,) => {
+                return this.changeRepeatableQuest(pmcData, changeRequest, sessionID);
+            };
+            //result.giveProfileMoney = this.giveProfileMoney
+        }, { frequency: "Always" });
+        //修复存档间互相购买报价(测试)
+        container.afterResolution("TradeController", (_t, result: TradeController) => {
+            //将原逻辑复制保留
+            //result.giveProfileMoneySrc = result.giveProfileMoney;
+            //覆写新逻辑,委托的形式（不推荐直接赋值）
+            result.buyPmcItemFromRagfair = (
+                sessionId: string,
+                pmcData: IPmcData,
+                fleaOffer: IRagfairOffer,
+                requestOffer: IOfferRequest,
+                output: IItemEventRouterResponse,) => {
+                return this.buyPmcItemFromRagfair(sessionId, pmcData, fleaOffer, requestOffer, output);
+            };
+            //result.giveProfileMoney = this.giveProfileMoney
+        }, { frequency: "Always" });
+        */
         //addTrader.addTraderPreSptload(inFuncContainer,商人名字)
     }
     postSptLoad(container) {
@@ -70,7 +119,19 @@ class Mod {
         //const common = container.resolve<VulcanCommon>("VulcanCommon");
         //common.Debug(common.getzhItemName("5aa7e276e5b5b000171d0647"))
     }
-    postDBLoad(inFuncContainer) {
+    postDBLoad(container) {
+        const common = container.resolve("VulcanCommon");
+        const databaseServer = container.resolve("DatabaseServer");
+        const ClientDB = databaseServer.getTables();
+        ClientDB.templates.handbook.Categories.push({
+            "Id": "66f1d60097d24f49a043bbd1",
+            "ParentId": "5b47574386f77428ca22b33e",
+            "Icon": "/files/handbook/icon_gear_cases.png",
+            "Color": "",
+            "Order": "100"
+        });
+        ClientDB.locales.global.ch["66f1d60097d24f49a043bbd1"] = "次元博物";
+        ClientDB.locales.global.en["66f1d60097d24f49a043bbd1"] = "Dimension Museum";
     }
     /**
    * 创建任务奖励
@@ -642,6 +703,211 @@ class Mod {
         const matchingCraftId = matchingProductions[0]._id;
         pmcData.UnlockedInfo.unlockedProductionRecipe.push(matchingCraftId);
         response.profileChanges[sessionID].recipeUnlocked[matchingCraftId] = true;
+    }
+    getRepeatableQuestSubTypeFromProfile(repeatableConfig, pmcData) {
+        const logger = Mod.container.resolve("WinstonLogger");
+        const importerUtil = Mod.container.resolve("ImporterUtil");
+        const preSptModLoader = Mod.container.resolve("PreSptModLoader");
+        const weightedRandomHelper = Mod.container.resolve("WeightedRandomHelper");
+        const itemFilterService = Mod.container.resolve("ItemFilterService");
+        const randomUtil = Mod.container.resolve("RandomUtil");
+        const presetHelper = Mod.container.resolve("PresetHelper");
+        const itemHelper = Mod.container.resolve("ItemHelper");
+        const localisationService = Mod.container.resolve("LocalisationService");
+        const mathUtil = Mod.container.resolve("MathUtil");
+        const hashUtil = Mod.container.resolve("HashUtil");
+        const jsonUtil = Mod.container.resolve("JsonUtil");
+        const vfs = Mod.container.resolve("VFS");
+        const databaseServer = Mod.container.resolve("DatabaseServer");
+        const databaseService = Mod.container.resolve("DatabaseService");
+        const ModPath = preSptModLoader.getModPath("[火神之心]VulcanCore");
+        const common = Mod.container.resolve("VulcanCommon");
+        const repeatableQuestRewardGenerator = Mod.container.resolve("RepeatableQuestRewardGenerator");
+        const repeatableQuestController = Mod.container.resolve("RepeatableQuestController");
+        const repeatableQuestGenerator = Mod.container.resolve("RepeatableQuestGenerator");
+        const lootGenerator = Mod.container.resolve("LootGenerator");
+        const inventoryHelper = Mod.container.resolve("InventoryHelper");
+        const traderHelper = Mod.container.resolve("TraderHelper");
+        const paymentHelper = Mod.container.resolve("PaymentHelper");
+        const questHelper = Mod.container.resolve("QuestHelper");
+        const paymentService = Mod.container.resolve("PaymentService");
+        const handbookHelper = Mod.container.resolve("HandbookHelper");
+        const profileHelper = Mod.container.resolve("ProfileHelper");
+        const timeUtil = Mod.container.resolve("TimeUtil");
+        const eventOutputHolder = Mod.container.resolve("EventOutputHolder");
+        const httpResponse = Mod.container.resolve("HttpResponseUtil");
+        const cloner = Mod.container.resolve("PrimaryCloner");
+        //
+        // Get from profile, add if missing
+        let repeatableQuestDetails = pmcData.RepeatableQuests
+            .find((repeatable) => repeatable.name === repeatableConfig.name);
+        if (!repeatableQuestDetails) // Not in profile, generate
+         {
+            const hasAccess = profileHelper.hasAccessToRepeatableFreeRefreshSystem(pmcData);
+            repeatableQuestDetails = {
+                id: repeatableConfig.id,
+                name: repeatableConfig.name,
+                activeQuests: [],
+                inactiveQuests: [],
+                endTime: 0,
+                changeRequirement: {},
+                freeChanges: hasAccess ? repeatableConfig.freeChanges : 0,
+                freeChangesAvailable: hasAccess ? repeatableConfig.freeChangesAvailable : 0,
+            };
+            // Add base object that holds repeatable data to profile
+            pmcData.RepeatableQuests.push(repeatableQuestDetails);
+        }
+        return repeatableQuestDetails;
+    }
+    changeRepeatableQuest(pmcData, changeRequest, sessionID) {
+        const logger = Mod.container.resolve("WinstonLogger");
+        const importerUtil = Mod.container.resolve("ImporterUtil");
+        const preSptModLoader = Mod.container.resolve("PreSptModLoader");
+        const weightedRandomHelper = Mod.container.resolve("WeightedRandomHelper");
+        const itemFilterService = Mod.container.resolve("ItemFilterService");
+        const randomUtil = Mod.container.resolve("RandomUtil");
+        const presetHelper = Mod.container.resolve("PresetHelper");
+        const itemHelper = Mod.container.resolve("ItemHelper");
+        const localisationService = Mod.container.resolve("LocalisationService");
+        const mathUtil = Mod.container.resolve("MathUtil");
+        const hashUtil = Mod.container.resolve("HashUtil");
+        const jsonUtil = Mod.container.resolve("JsonUtil");
+        const vfs = Mod.container.resolve("VFS");
+        const databaseServer = Mod.container.resolve("DatabaseServer");
+        const databaseService = Mod.container.resolve("DatabaseService");
+        const ModPath = preSptModLoader.getModPath("[火神之心]VulcanCore");
+        const common = Mod.container.resolve("VulcanCommon");
+        const repeatableQuestRewardGenerator = Mod.container.resolve("RepeatableQuestRewardGenerator");
+        const repeatableQuestController = Mod.container.resolve("RepeatableQuestController");
+        const repeatableQuestGenerator = Mod.container.resolve("RepeatableQuestGenerator");
+        const lootGenerator = Mod.container.resolve("LootGenerator");
+        const inventoryHelper = Mod.container.resolve("InventoryHelper");
+        const traderHelper = Mod.container.resolve("TraderHelper");
+        const paymentHelper = Mod.container.resolve("PaymentHelper");
+        const questHelper = Mod.container.resolve("QuestHelper");
+        const paymentService = Mod.container.resolve("PaymentService");
+        const handbookHelper = Mod.container.resolve("HandbookHelper");
+        const profileHelper = Mod.container.resolve("ProfileHelper");
+        const timeUtil = Mod.container.resolve("TimeUtil");
+        const eventOutputHolder = Mod.container.resolve("EventOutputHolder");
+        const httpResponse = Mod.container.resolve("HttpResponseUtil");
+        const cloner = Mod.container.resolve("PrimaryCloner");
+        //
+        const output = eventOutputHolder.getOutput(sessionID);
+        const fullProfile = profileHelper.getFullProfile(sessionID);
+        // Check for existing quest in (daily/weekly/scav arrays)
+        const { quest: questToReplace, repeatableType: repeatablesInProfile } = repeatableQuestController.getRepeatableById(changeRequest.qid, pmcData);
+        // Subtype name of quest - daily/weekly/scav
+        const repeatableTypeLower = repeatablesInProfile.name.toLowerCase();
+        // Save for later standing loss calculation
+        const replacedQuestTraderId = questToReplace.traderId;
+        // Update active quests to exclude the quest we're replacing
+        repeatablesInProfile.activeQuests = repeatablesInProfile.activeQuests
+            .filter((quest) => quest._id !== changeRequest.qid);
+        // Save for later cost calculation
+        const previousChangeRequirement = cloner.clone(repeatablesInProfile.changeRequirement[changeRequest.qid]);
+        // Delete the replaced quest change requrement as we're going to replace it
+        delete repeatablesInProfile.changeRequirement[changeRequest.qid];
+        // Get config for this repeatable sub-type (daily/weekly/scav)
+        const repeatableConfig = repeatableQuestController.questConfig.repeatableQuests
+            .find((config) => config.name === repeatablesInProfile.name);
+        // Generate meta-data for what type/levelrange of quests can be generated for player
+        const allowedQuestTypes = repeatableQuestController.generateQuestPool(repeatableConfig, pmcData.Info.Level);
+        const newRepeatableQuest = repeatableQuestController.attemptToGenerateRepeatableQuest(pmcData, allowedQuestTypes, repeatableConfig);
+        if (!newRepeatableQuest) {
+            // Unable to find quest being replaced
+            const message = `Unable to generate repeatable quest of type: ${repeatableTypeLower} to replace trader: ${replacedQuestTraderId} quest ${changeRequest.qid}`;
+            logger.error(message);
+            return httpResponse.appendErrorToOutput(output, message);
+        }
+        // Add newly generated quest to daily/weekly/scav type array
+        newRepeatableQuest.side = repeatableConfig.side;
+        repeatablesInProfile.activeQuests.push(newRepeatableQuest);
+        // Find quest we're replacing in pmc profile quests array and remove it
+        questHelper.findAndRemoveQuestFromArrayIfExists(questToReplace._id, pmcData.Quests);
+        // Find quest we're replacing in scav profile quests array and remove it
+        questHelper.findAndRemoveQuestFromArrayIfExists(questToReplace._id, fullProfile.characters.scav?.Quests ?? []);
+        // Add new quests replacement cost to profile
+        repeatablesInProfile.changeRequirement[newRepeatableQuest._id] = {
+            changeCost: newRepeatableQuest.changeCost,
+            changeStandingCost: randomUtil.getArrayValue([0, 0.01]),
+        };
+        // Check if we should charge player for replacing quest
+        const isFreeToReplace = repeatableQuestController.useFreeRefreshIfAvailable(fullProfile, repeatablesInProfile, repeatableTypeLower);
+        if (!isFreeToReplace) {
+            // Reduce standing with trader for not doing their quest
+            const traderOfReplacedQuest = pmcData.TradersInfo[replacedQuestTraderId];
+            traderOfReplacedQuest.standing -= previousChangeRequirement.changeStandingCost;
+            // not free, Charge player
+            for (const cost of previousChangeRequirement.changeCost) {
+                cost.count = Math.trunc(cost.count * (1 - (Math.trunc((profileHelper.getSkillFromProfile(pmcData, SkillTypes_1.SkillTypes.CHARISMA)?.Progress ?? 0) / 100) * 0.001)) ?? 1);
+                //console.log(cost.count)
+                //console.log((profileHelper.getSkillFromProfile(pmcData, SkillTypes.CHARISMA)?.Progress ?? 0)/100)
+                //console.log((Math.trunc((profileHelper.getSkillFromProfile(pmcData, SkillTypes.CHARISMA)?.Progress ?? 0)/100)*0.001))
+                paymentService.addPaymentToOutput(pmcData, cost.templateId, cost.count, sessionID, output);
+                if (output.warnings.length > 0) {
+                    return output;
+                }
+            }
+        }
+        // Clone data before we send it to client
+        const repeatableToChangeClone = cloner.clone(repeatablesInProfile);
+        // Purge inactive repeatables
+        repeatableToChangeClone.inactiveQuests = [];
+        if (!repeatableToChangeClone) {
+            // Unable to find quest being replaced
+            const message = localisationService.getText("quest-unable_to_find_repeatable_to_replace");
+            logger.error(message);
+            return httpResponse.appendErrorToOutput(output, message);
+        }
+        // Nullguard
+        output.profileChanges[sessionID].repeatableQuests ||= [];
+        // Update client output with new repeatable
+        output.profileChanges[sessionID].repeatableQuests.push(repeatableToChangeClone);
+        return output;
+    }
+    buyPmcItemFromRagfair(sessionId, pmcData, fleaOffer, requestOffer, output) {
+        console.log("START");
+        const tradeHelper = Mod.container.resolve("TradeHelper");
+        const profileHelper = Mod.container.resolve("ProfileHelper");
+        const saveServer = Mod.container.resolve("SaveServer");
+        const ragfairOfferHelper = Mod.container.resolve("RagfairOfferHelper");
+        const configServer = Mod.container.resolve("ConfigServer");
+        const ragfairServer = Mod.container.resolve("RagfairServer");
+        const ragfairConfig = configServer.getConfig(ConfigTypes_1.ConfigTypes.RAGFAIR);
+        //
+        const buyData = {
+            Action: "TradingConfirm",
+            type: "buy_from_ragfair",
+            tid: "ragfair",
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            item_id: fleaOffer._id, // Store ragfair offerId in buyRequestData.item_id
+            count: requestOffer.count,
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            scheme_id: 0,
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            scheme_items: requestOffer.items,
+        };
+        // buyItem() must occur prior to removing the offer stack, otherwise item inside offer doesn't exist for confirmTrading() to use
+        tradeHelper.buyItem(pmcData, buyData, sessionId, ragfairConfig.dynamic.purchasesAreFoundInRaid, output);
+        if (output.warnings.length > 0) {
+            return;
+        }
+        //resolve when a profile buy another profile's offer
+        const OfferID = fleaOffer._id;
+        const OfferOwnerID = fleaOffer.user?.id;
+        const OfferBuyCount = requestOffer.count;
+        //resolve offer
+        if (profileHelper.getFullProfile(OfferOwnerID) != null) {
+            if (profileHelper.getFullProfile(OfferOwnerID).characters.pmc.RagfairInfo.offers.length > 0) {
+                if (profileHelper.getFullProfile(OfferOwnerID).characters.pmc.RagfairInfo.offers.some(offer => offer._id == OfferID)) {
+                    ragfairOfferHelper.completeOffer(OfferOwnerID, fleaOffer, OfferBuyCount);
+                    return;
+                }
+            }
+        }
+        // Remove/lower stack count of item purchased from flea offer
+        ragfairServer.removeOfferStack(fleaOffer._id, requestOffer.count);
     }
 }
 module.exports = { mod: new Mod() };
